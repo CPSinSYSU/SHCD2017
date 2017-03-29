@@ -666,7 +666,7 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
          * scanobj.shots[i] 包含一个block的32个激光点数据(64线则包含相邻两个block的64个点)
          * 16线激光雷达一个block的第二个shot
          */
-
+        }
         velodyne_data.shots.push_back(shotobj);
     }
     return 0;
