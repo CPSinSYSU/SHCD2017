@@ -22,9 +22,9 @@ if(NOT OPENGL_FOUND)
 endif(NOT OPENGL_FOUND)
 
 add_executable(Velodyne_viewer  VelodyneViewer_main.cpp
-    velodyneThread.cpp velodyneScanner.cpp velodyneHeightMap.cpp
-    velodyneDriver.cpp velodyneDraw.cpp velodyneDataStruct.cpp
-    velodyneAlgoGrid.cpp velodyneAlgoCore.cpp velodyneAlgoPie.cpp  
-    configStruct.cpp velodyneNegativeObstacleMap.cpp)
+    velodyneThread.cpp velodyneScanner.cpp velodyneDriver.cpp velodyneDraw.cpp velodyneDataStruct.cpp configStruct.cpp)
 
-target_link_libraries(Velodyne_viewer ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} pthread lcm glib-2.0)
+target_link_libraries(Velodyne_viewer ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} pthread glib-2.0)
+
+INSTALL(TARGETS Velodyne_viewer
+	RUNTIME DESTINATION bin)

@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * ʹ��У׼�㷨��У׼���ݽ������ݱ궨
+ * 使用校准算法及校准数据进行数据标定
  *
  * This is the header for the velodyne ladar interface drivers.
  *
@@ -33,7 +33,7 @@ static const float DISTANCE_RESOLUTION = 0.002f;
 static const uint16_t UPPER_BANK = 0xEEFF;
 static const uint16_t LOWER_BANK = 0xDDFF;
 
-// �궨����(64��)
+// 标定数据(64线)
 #ifdef USE_HDL_64E_
 static double velodyne_calibrated[VELODYNE_NUM_BEAMS_IN_ONE_SHOT][5] =
 {
@@ -131,7 +131,7 @@ static double velodyne_calibrated[VELODYNE_NUM_BEAMS_IN_ONE_SHOT][5] =
 #ifdef USE_NEW_SOLVER
 static double velodyne_calibrated[VELODYNE_NUM_BEAMS_IN_ONE_SHOT][5] =
 {
-    //vertCorrection(������)  rotCorrection  distCorrection  vertOffsetCorrection  horizOffsetCorrection
+    //vertCorrection(弧度制)  rotCorrection  distCorrection  vertOffsetCorrection  horizOffsetCorrection
     { -0.5352924815866609, 0, 0, 0, 0 },
     { -0.1628392174657417, 0, 0, 0, 0 },
     { -0.5119050696099369, 0, 0, 0, 0 },
@@ -168,7 +168,7 @@ static double velodyne_calibrated[VELODYNE_NUM_BEAMS_IN_ONE_SHOT][5] =
 #else
 static double velodyne_calibrated[VELODYNE_NUM_BEAMS_IN_ONE_SHOT][5] =
 {
-    //vertCorrection(�Ƕ���)  rotCorrection  distCorrection  vertOffsetCorrection  horizOffsetCorrection
+    //vertCorrection(角度制)  rotCorrection  distCorrection  vertOffsetCorrection  horizOffsetCorrection
     { -30.67, 0, 0, 0, 0 },
     { -9.33, 0, 0, 0, 0 },
     { -29.33, 0, 0, 0, 0 },
@@ -205,26 +205,26 @@ static double velodyne_calibrated[VELODYNE_NUM_BEAMS_IN_ONE_SHOT][5] =
 #endif		// end of #ifdef USE_NEW_SOLVER
 #endif		// end of #ifdef USE_HDL_64E_
 
-// У������
-// ����ˮƽ��ת��У����(/rad)
+// 校正数据
+// 激光水平旋转角校正量(/rad)
 double rotCorrection[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
 //
 int rotOffset[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
-// ������xoz���ڵ�ͶӰ��x���ļн�(VerticalAngle: omiga)
+// 激光在xoz面内的投影与x轴的夹角(VerticalAngle: omiga)
 double vertCorrection[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
-// ���벹�������������ռ���֮���ľ���
+// 距离补偿，发射口与空间点之间的距离
 double distCorrection[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
-// �����ڵĴ�ֱƫ�ƣ��������ڸ߶�
+// 发射口的垂直偏移，即发射口高度
 double vert_offsetCorrection[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
-// �����ڵ�ˮƽƫ�ƣ�����������xoy����ͶӰ�ϵ�yֵ
+// 发射口的水平偏移，即发射口在xoy面内投影上的y值
 double horiz_offsetCorrection[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
 
 double sin_vertCorrection[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
 double cos_vertCorrection[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
-// ��ת��������ֵ
+// 旋转角正余弦值
 double sinAzimuth[36000];
 double cosAzimuth[36000];
-// ����������ת��������ֵ
+// 修正后的旋转角正余弦值
 double cor_sinAzimuth[VELODYNE_NUM_BEAMS_IN_ONE_SHOT][36000];
 double cor_cosAzimuth[VELODYNE_NUM_BEAMS_IN_ONE_SHOT][36000];
 
@@ -257,8 +257,8 @@ static inline double mod2pi_ref(double ref, double vin)
     return ref + mod2pi(vin - ref);
 }
 /*
- *		logical: packet�м�����˳��0-VELODYNE_NUM_BEAMS_IN_ONE_SHOT
- *		physical: ��ֱƽ����->��
+ *		logical: packet中激光点顺序0-VELODYNE_NUM_BEAMS_IN_ONE_SHOT
+ *		physical: 垂直平面高->低
  */
 int heightOrder2firingOrder[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
 int firingOrder2heightOrder[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
@@ -273,8 +273,8 @@ int velodyne_heightOrder_to_firingOrder(int height_id)
     return heightOrder2firingOrder[height_id];
 }
 /*
- *	����qsort�ıȽϺ���
- *	�����״�У������(��ֱ�Ƕ�ƽ����->��)��С��������
+ *	用于qsort的比较函数
+ *	激光雷达校验数据(垂直角度平面低->高)由小到大排列
  *		return value				meaning
  *			<0			The element pointed to by p1 goes before the element pointed to by p2
  *			0			The element pointed to by p1 is equivalent to the element pointed to by p2
@@ -289,8 +289,8 @@ int laser_phi_compare(const void *_a, const void *_b)
     return 1;
 }
 /*
- *		�����״�����
- *		��ʽ: i, ang, tan_ang, 230/tan_ang
+ *		保存雷达数据
+ *		格式: i, ang, tan_ang, 230/tan_ang
  */
 int SaveRad()
 {
@@ -306,8 +306,8 @@ int SaveRad()
     return 0;
 }
 /*
- *	У׼����Ԥ����, ������������:
- *	 logical2physical[VELODYNE_NUM_LASERS_BEAM_IN_ONE_SHOT] = 0~VELODYNE_NUM_LASERS_BEAM_IN_ONE_SHOT���ռ���У������velodyne_calibrated[i][0]�Ӵ���С����
+ *	校准数据预处理, 计算以下数据:
+ *	 logical2physical[VELODYNE_NUM_LASERS_BEAM_IN_ONE_SHOT] = 0~VELODYNE_NUM_LASERS_BEAM_IN_ONE_SHOT按照激光校验数据velodyne_calibrated[i][0]从大到小排列
  *	 physical2logical[logical2physical[logical]] = 0~VELODYNE_NUM_LASERS_BEAM_IN_ONE_SHOT
  *
  *	 vertCorrection[i] = ( velodyne_calibrated[i][0] ) * RADIANS_PER_LSB;
@@ -317,19 +317,19 @@ int SaveRad()
  *	 vertoffsetCorrection[i] = velodyne_calibrated[i][3] * METERS_PER_CM;
  *	 horizdffsetCorrection[i] = velodyne_calibrated[i][4] * METERS_PER_CM;
  *
- *	 sintheta[64][36000] = sin(��������λ��)
- *	 costheta[64][36000] = cos(��������λ��)
- *	 sinctheta[36000] = sin(ԭʼ��λ��)
- *	 cosctheta[36000] = cos(ԭʼ��λ��)
+ *	 sintheta[64][36000] = sin(修正后方位角)
+ *	 costheta[64][36000] = cos(修正后方位角)
+ *	 sinctheta[36000] = sin(原始方位角)
+ *	 cosctheta[36000] = cos(原始方位角)
  */
 int velodyne_calib_precompute()
 {
     for (unsigned firingOrder = 0; firingOrder < VELODYNE_NUM_BEAMS_IN_ONE_SHOT; firingOrder++)
         heightOrder2firingOrder[firingOrder] = firingOrder;
     /*
-     *	��ֱƽ����->�� ���߼�packet�еļ���������˳����������
-     *	logical2physical: ͨ�����±���ȡ��Ӧ��Circle ID(Vertical Angle�ɵ͵���)
-     *	heightOrder2firingOrder: ͨ��Circle ID��ȡ��Ӧ�İ��±�
+     *	垂直平面高->低 对逻辑packet中的激光点数据顺序进行重排
+     *	logical2physical: 通过包下标获取对应的Circle ID(Vertical Angle由低到高)
+     *	heightOrder2firingOrder: 通过Circle ID获取对应的包下标
      */
     qsort(heightOrder2firingOrder, VELODYNE_NUM_BEAMS_IN_ONE_SHOT, sizeof(int), laser_phi_compare);
 #ifdef _PRINT_ORDER_
@@ -385,11 +385,11 @@ int velodyne_calib_precompute()
     double theta_1;
     double rat;
     /*
-     *	�������ǵ�������ֵ
-     *	ʹ�ü���ˮƽ���ǽ���������������������������
-     *		(�ֲ�����ֱ��ͨ��) rotational_pos[block] - rotCorrection[laser]
+     *	计算旋角的正余弦值
+     *	使用激光水平旋角矫正量计算修正后的旋角正余弦
+     *		(手册中是直接通过) rotational_pos[block] - rotCorrection[laser]
      */
-    // sintheta[64][36000] = sin(��������λ��)
+    // sintheta[64][36000] = sin(修正后方位角)
     for (unsigned laser = 0; laser<VELODYNE_NUM_BEAMS_IN_ONE_SHOT; laser++)
     {
         for (unsigned theta = 0; theta<36000; theta++)
@@ -399,10 +399,10 @@ int velodyne_calib_precompute()
             if (ctheta == 2 * M_PI)
                 ctheta = 0;
             theta_1 = mod2pi_ref(M_PI, ctheta + rotCorrection[laser]);
-            cor_sinAzimuth[laser][theta] = sin(theta_1);						// sin(��������λ��)
+            cor_sinAzimuth[laser][theta] = sin(theta_1);						// sin(修正后方位角)
         }
     }
-    // costheta[64][36000] = cos(��������λ��)
+    // costheta[64][36000] = cos(修正后方位角)
     for (unsigned laser = 0; laser<VELODYNE_NUM_BEAMS_IN_ONE_SHOT; laser++)
     {
         for (unsigned theta = 0; theta<36000; theta++)
@@ -412,26 +412,26 @@ int velodyne_calib_precompute()
             if (ctheta == 2*M_PI)
                 ctheta = 0;
             theta_1 = mod2pi_ref(M_PI, ctheta + rotCorrection[laser]);
-            cor_cosAzimuth[laser][theta] = cos(theta_1);						// cos(��������λ��)
+            cor_cosAzimuth[laser][theta] = cos(theta_1);						// cos(修正后方位角)
         }
     }
-    // sinctheta[36000] = sin(ԭʼ��λ��)
+    // sinctheta[36000] = sin(原始方位角)
     for (unsigned theta = 0; theta<36000; theta++)
     {
         rat = ((double)theta) / 100.0;
         ctheta = 2 * M_PI - RADIANS_PER_LSB*rat;
         if (ctheta == 2 * M_PI)
             ctheta = 0;
-        sinAzimuth[theta] = sin(ctheta);										// sin(ԭʼ�ķ�λ��)
+        sinAzimuth[theta] = sin(ctheta);										// sin(原始的方位角)
     }
-    // cosctheta[36000] = sin(ԭʼ��λ��)
+    // cosctheta[36000] = sin(原始方位角)
     for (unsigned theta = 0; theta<36000; theta++)
     {
         rat = ((double)theta) / 100.0;
         ctheta = 2 * M_PI - RADIANS_PER_LSB*rat;
         if (ctheta == 2 * M_PI)
             ctheta = 0;
-        cosAzimuth[theta] = cos(ctheta);										// cos(ԭʼ��λ��)
+        cosAzimuth[theta] = cos(ctheta);										// cos(原始方位角)
     }
     return 0;
 }
@@ -450,8 +450,8 @@ VelodyneDriver::~VelodyneDriver()
 {
 }
 /*
- *	ͨ����ͷ0xEEFF����packet��Ч��
- *	64�߼����״�ͬ�����ǵ�����packet�İ�ͷ�ֱ�Ϊ EEFF �� DDFF
+ *	通过包头0xEEFF检查packet有效性
+ *	64线激光雷达同个旋角的两个packet的包头分别为 EEFF 和 DDFF
  */
 int VelodyneDriver::checkPacket(VelodyneDataRaw::velodyne_packet_t& packet)
 {
@@ -467,12 +467,12 @@ int VelodyneDriver::checkPacket(VelodyneDataRaw::velodyne_packet_t& packet)
     }
 }
 /*
- *	�ж��Ƿ����µ�һ�����ݣ���������һ�ο�ʼ�Ƕ� lastRotation
- *	�����״�ÿɨ����һ�ܣ�packet��Ŀ��������Ҫ�� ����������һ�ܵļ������ݱ������������У����к�����������
+ *	判断是否是新的一周数据，并更新上一次开始角度 lastRotation
+ *	激光雷达每扫描完一周，packet数目必须满足要求 满足则将这一周的激光数据保留到缓冲区中，进行后续处理分析
  */
 bool VelodyneDriver::isNewScan(VelodyneDataRaw::velodyne_packet_t& packet)
 {
-    // ���ڲ�������
+    // 用于测试旋角
     //#define _TEST_
 #ifdef _TEST_
     static int counter = 0;
@@ -490,19 +490,19 @@ bool VelodyneDriver::isNewScan(VelodyneDataRaw::velodyne_packet_t& packet)
     }
     printf("\n\n");
 #endif
-    // ����packet����Ч��
+    // 检查packet的有效性
     if (checkPacket(packet) != 0)
     {
         return false;
     }
-    // ʹ�õ�һ��packet����ʼ���ǳ�ʼ��lastRotation����Ϊ�������ݲɼ�����ʼ����
+    // 使用第一个packet的起始旋角初始化lastRotation，作为整个数据采集的起始旋角
     if (this->lastRotation == -1)
     {
         lastRotation = packet.blocks[0].rotational_pos;
         //printf("lastRotation = %d\n", lastRotation);
         return false;
     }
-    // ÿһ֡�ı߽���90�ȿ�ʼ�������ĺ���(������360-90=270)�������ܱ�֤����ǰ������ [Velodyne_16 from Wuhan]
+    // 每一帧的边界从90度开始，即车的后面(极坐标360-90=270)，这样能保证车的前方连续 [Velodyne_16 from Wuhan]
     if (packet.blocks[0].rotational_pos >= 9000 && lastRotation <= 9000){
     //if (packet.blocks[0].rotational_pos >= 18000 && lastRotation <= 18000){
         lastRotation = packet.blocks[0].rotational_pos;
@@ -513,7 +513,7 @@ bool VelodyneDriver::isNewScan(VelodyneDataRaw::velodyne_packet_t& packet)
 
         return true;
     }
-    // ������һ�ܼ���������ʼ����
+    // 更新新一周激光数据起始旋角
     else
     {
         lastRotation = packet.blocks[0].rotational_pos;
@@ -522,11 +522,11 @@ bool VelodyneDriver::isNewScan(VelodyneDataRaw::velodyne_packet_t& packet)
 }
 /*
  *	packet: 1206 byte
- *	ÿ��packet������12��fire��ÿ��fire������32��laser����(32*3(2*distance+1*intensity))
+ *	每个packet里面有12次fire，每次fire里面有32个laser数据(32*3(2*distance+1*intensity))
  *		12*(2[start identifier]+2[Rotational]+32*3)
  *		+ 6(status data:4[GPS timestamp]+1[Status Byte]+1[Status Value])
- *	��packet����������(1206 Bytes)������velodyne_data��
- *		velodyne_data��shot���ɣ�ÿ��shot�ɵ㹹��(���մ�ֱ�Ƕȵ�->��)
+ *	将packet里面的数据(1206 Bytes)解析到velodyne_data中
+ *		velodyne_data由shot组成，每个shot由点构成(按照垂直角度低->高)
  */
 int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, VelodyneDataRaw& velodyne_data)
 {
@@ -535,22 +535,22 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
     int DISTANCE_MAXIMUM = g_CfgVeloView.cfgGlobal.MaxLaserDistacne;
     int DISTANCE_MINIMUM = g_CfgVeloView.cfgGlobal.MinLaserDistance;
 
-    // ÿ��fire����ת��
+    // 每次fire的旋转角
     int rotational_pos;
 
-    // �����㼫��������
+    // 激光点极坐标距离
     float distance;
-    // У�����ľ���
+    // 校正后的距离
     float corredistance;
 
-    // �����㷴��ǿ��
+    // 激光点反射强度
     int intensity;
 
-    // �߶�(��->��)���� ����˳��(�Ⱥ�)����
+    // 高度(低->高)编号 接收顺序(先后)编号
     unsigned short heightNO;
     unsigned short firingNO;
 
-    // ������ --> ֱ������
+    // 极坐标 --> 直角坐标
     float sin_ctheta, cos_ctheta;
     float sin_theta, cos_theta;
     float sin_omiga, cos_omiga;
@@ -558,7 +558,7 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
     VelodyneDataRaw::shot_t shotobj;
 
 
-    // ÿ��packet����12��blocks
+    // 每个packet包含12个blocks
     for (unsigned block = 0; block < VELODYNE_NUM_BLOCKS_IN_ONE_PKT; block++)
     {
         /*
@@ -566,8 +566,7 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
          *		then a two-byte azimuth value (rotational angle),
          *		followed by 32x3-byte data records.
          */
-        // Each frame start with 0xEEFF || 0xDDFF(64�ߵĵڶ���block)
-
+        // Each frame start with 0xEEFF || 0xDDFF(64线的第二个block)
 
         if (packet.blocks[block].start_identifier != UPPER_BANK)
         {
@@ -581,7 +580,7 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
         for (unsigned laser = 0; laser < VELODYNE_NUM_BEAMS_IN_ONE_BLOCK; laser++)
         {
 
-            // 32�߼����״� һ��block����һ��shot
+            // 32线激光雷达 一个block就是一个shot
             firingNO = laser;
 
             heightNO = velodyne_firingOrder_to_heightOrder(firingNO);
@@ -590,7 +589,7 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                    DISTANCE_MAXIMUM, DISTANCE_MINIMUM);
         #endif
             /*
-             *	1200 * 0.002 = 2.4m(DISTANCE_MINIMUM�����ǳ��뾶��ֵ)
+             *	1200 * 0.002 = 2.4m(DISTANCE_MINIMUM可能是车半径估值)
              *	250  * 0.002 = 0.5m
              *	60000 * 0.002 = 120m
              */
@@ -603,25 +602,23 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                 corredistance = distance + distCorrection[firingNO];
 
                 /*
-                 *	one byte of intensity information (0 �C 255, with 255 being the most intense return).
+                 *	one byte of intensity information (0 – 255, with 255 being the most intense return).
                  *	A zero return indicates no return up to 65 meters
                  */
+
                 intensity = packet.blocks[block].lasers[laser].intensity;
 
                 /* START TODO: you need to fix the following code
                  *
                  */
-                
-                sin_theta = 0;				// ԭʼ��λ��
+                sin_theta = 0;				// 原始方位角
                 cos_theta = 0;
                 sin_ctheta = 0;
                 cos_ctheta = 0;
                 sin_omiga = 0;
                 cos_omiga = 0;
 
-                // ������ӳ�䵽ֱ������
-
-                
+                // 极坐标映射到直角坐标
                 shotobj.pt[heightNO].x = 0;
                 shotobj.pt[heightNO].y = 0;
                 shotobj.pt[heightNO].z = 0;
@@ -635,12 +632,11 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                 shotobj.pt[heightNO].z *= 0;
 
                 shotobj.pt[heightNO].i = 0;
-                
+
                 /* END TODO: you need to fix the above code
                  *
                  */
-
-
+                 
                 shotobj.pt[heightNO].point_type = POINT_TYPE_INITIAL;
 
                 // set circle id
@@ -660,19 +656,24 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                 shotobj.pt[heightNO].point_type = POINT_TYPE_INITIAL;
                 shotobj.pt[heightNO].point_type |= POINT_TYPE_INVALID;
             }
+            /*
+             * 16线激光雷达一个packet有24条laser，相邻2个shot归为一个block
+             *	scanobj.shots[i] 16线包含16个点
+             * for the 2rd shot in the same block, use the previous calculated Azimuth
+             */
 
-
-        }
-
+        /*
+         * scanobj.shots[i] 包含一个block的32个激光点数据(64线则包含相邻两个block的64个点)
+         * 16线激光雷达一个block的第二个shot
+         */
 
         velodyne_data.shots.push_back(shotobj);
     }
     return 0;
 }
-
 /*
- *	���ڵ��Ե���ʾ����
- *		ÿ�� packet 12��fire��ÿ��fire 32��laser(ÿ����fire����һ��64�߼�������)
+ *	用于调试的显示函数
+ *		每个 packet 12次fire，每次fire 32个laser(每两次fire组成一组64线激光数据)
  */
 void VelodyneDriver::printPacket(VelodyneDataRaw::velodyne_packet_t &packet, int seq)
 {

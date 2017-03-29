@@ -336,17 +336,6 @@ public:
         // 集群中point的数量
         int pointNumber;
         unsigned int clusterType;
-        // rectangular bounding box
-        //float maxLength;
-        //float minWidth;
-        //float length;
-        //float width;
-        //float boxDirection;
-        //double boxVex[4][2];
-        // bounding celles Info
-        //vector <BoundingCellInfo> boundingCellInfoArray;
-        // polygon bounding box points
-        //vector <PolygonPoint> polygonBoxPointArray;
     } pieClusterFeature_t;
     typedef std::vector<pieClusterFeature_t> pieClusterFeatureSet_t;
 
@@ -464,35 +453,6 @@ public:
         std::vector <clusterCircleLineFeature_t> circleLineFeature;
     } clusterLineFeature_t;
 
-    //// cluster bounding cell Information
-    //typedef struct BoundingCellInfo
-    //{
-    //	int columnID;
-    //	int cellID;
-    //
-    //	double center_x;
-    //	double center_y;
-    //	double center_z;
-    //};
-    //
-    //// Point ID in cluster Data
-    //struct PointID
-    //{
-    //	int columnID;
-    //	int cellID;
-    //	int pointIndexInCell;
-    //};
-    //
-    //// cluster convex polygon bounding box point
-    //struct PolygonPoint
-    //{
-    //	double x;
-    //	double y;
-    //	double z;
-    //	double angle;
-    //	PointID pointID;
-    //};
-
     std::vector<shot_t> shots;
     pointStatistics_t scanStatistics;
     std::vector<pointStatistics_t> circlesStatistics;
@@ -587,17 +547,7 @@ public:
     int circleGridWidth;
     bool isTrackerHandled;
 
-    /* no need for current version
-    // return a new sorted velodyne scan
-    VelodyneDataStruct sort(void);
-
-    void calc(void);
-    void calcCircleFeature(void);
-    void calcShotFeature(void);
-    */
 };
-
-
 
 #endif
 

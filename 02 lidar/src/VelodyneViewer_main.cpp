@@ -8,8 +8,6 @@
 #endif
 
 #include "velodyneThread.h"
-// add by sean
-// header file for setitimer
 #include <unistd.h>   // for pause
 #include <signal.h>   // for signal
 #include <string.h>   // for memset
@@ -109,19 +107,6 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    pthread_create(&(g_lcm_th), NULL, &(LCMThread), NULL);
-#if 1
-    status = pthread_getschedparam(g_lcm_th, &policy, &thread_param);
-    if (status != 0) {
-        printf("get lcm thread sched ERROR, status=%d\n", status);
-    }
-    thread_param.sched_priority = rr_max_priority;
-    status = pthread_setschedparam(g_lcm_th, SCHED_RR, &thread_param);
-    if (status != 0) {
-        printf("set lcm thread sched ERROR, status=%d\n", status);
-    }
-#endif
-
     pthread_create(&(g_opengl_th), NULL, &(OpenGLThread), NULL);
 #if 1
     status = pthread_getschedparam(g_opengl_th, &policy, &thread_param);
@@ -172,7 +157,6 @@ int main(int argc, char *argv[])
 #endif
 
     pthread_join(g_opengl_th, NULL);
-    pthread_join(g_lcm_th, NULL);
     pthread_join(g_socket_th, NULL);
 
 #ifdef WIN32
@@ -185,7 +169,4 @@ int main(int argc, char *argv[])
     pthread_spin_destroy(&g_glut_lock);
 
     return 0;
-    //TODO:
-    /* Last thing that main() should do */
-    //pthread_exit(NULL);
 }

@@ -28,8 +28,8 @@ endif(NOT OPENGL_FOUND)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GLIB_PKG glib-2.0)
 
-if (GLIB_PKG_FOUND)
-    message(Found glib-2.0)
+if (NOT GLIB_PKG_FOUND)
+    message(ERROR " glib-2.0 not found!")
 endif()
 include_directories(${GLIB_PKG_INCLUDE_DIRS})
 
@@ -39,3 +39,4 @@ add_subdirectory(src bin)
 # Linking & stuff
 #########################################################
 # target_link_libraries(Velodyne_viewer ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} )
+

@@ -22,7 +22,6 @@
 #include "velodyneScanner.h"
 
 void* SocketThread(void* arg);
-void* LCMThread(void* lparam);
 void* OpenGLThread(void* arg);
 
 #ifdef WIN32
@@ -32,7 +31,6 @@ void TimerProc(int num);
 #endif // WIN32
 
 extern pthread_t g_socket_th;
-extern pthread_t g_lcm_th;
 extern pthread_t g_opengl_th;
 
 extern pthread_spinlock_t g_scanBuffer_lock;
