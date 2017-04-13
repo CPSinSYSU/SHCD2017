@@ -1,5 +1,6 @@
 /**************************************************************************
  *
+ //
  * 使用校准算法及校准数据进行数据标定
  *
  * This is the header for the velodyne ladar interface drivers.
@@ -611,27 +612,61 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                 /* START TODO: you need to fix the following code
                  *
                  */
-                sin_theta = 0;				// 原始方位角
+                /*sin_theta = 0;				// 原始方位角
                 cos_theta = 0;
                 sin_ctheta = 0;
                 cos_ctheta = 0;
                 sin_omiga = 0;
-                cos_omiga = 0;
+                cos_omiga = 0;*/
+                
+           //added by curry---begin
+                sin_theta = sinAzimuth[rotational_pos];     //original horizontal azimuth, cos value and sin value 
+                cos_theta = cosAzimuth[rotational_pos];
+                sin_ctheta = cor_sinAzimuth[firingNO][rotational_pos];  //corrected azimuth in horizontal direction
+                cos_ctheta = cor_cosAzimuth[firingNO][rotational_pos];
+                sin_omiga = sin_vertCorrection[firingNO];   //omiga is the value of vertical angle
+                cos_omiga = cos_vertCorrection[firingNO];
+           //added by curry---end
+
+
 
                 // 极坐标映射到直角坐标
-                shotobj.pt[heightNO].x = 0;
+                /*shotobj.pt[heightNO].x = 0;
                 shotobj.pt[heightNO].y = 0;
                 shotobj.pt[heightNO].z = 0;
                 shotobj.pt[heightNO].x -= 0;
-                shotobj.pt[heightNO].y += 0;
+                shotobj.pt[heightNO].y += 0;*/
+
+		
+           //added by curry---begin
+	         	//mapping polar coordinates to rectangular coordinate.
+		              shotobj.pt[heightNO].x = corredistance * cos_omiga * cos_ctheta; 
+                shotobj.pt[heightNO].y = corredistance * cos_omiga * sin_ctheta;
+		              shotobj.pt[heightNO].z = corredistance * sin_omiga + vert_offsetCorrection[firingNO]; //add the vertical offset of firing state
+		              shotobj.pt[heightNO].x -= horiz_offsetCorrection[firingNO] * cos_ctheta;//modify the horizontal offset in two dimension
+                shotobj.pt[heightNO].y += horiz_offsetCorrection[firingNO] * sin_ctheta;
+		        //added by curry---end
+
 
 
                 // m to cm
-                shotobj.pt[heightNO].x *= 0;
+                /*shotobj.pt[heightNO].x *= 0;
                 shotobj.pt[heightNO].y *= 0;
                 shotobj.pt[heightNO].z *= 0;
 
-                shotobj.pt[heightNO].i = 0;
+                shotobj.pt[heightNO].i = 0;*/
+		
+		       //added by curry---begin
+		              shotobj.pt[heightNO].x *= 100;   // from m to cm, 1.0m==100cm
+                shotobj.pt[heightNO].y *= 100;
+                shotobj.pt[heightNO].z *= 100;
+
+                shotobj.pt[heightNO].i = intensity;
+
+		       //added by curry---end 
+
+
+
 
                 /* END TODO: you need to fix the above code
                  *
