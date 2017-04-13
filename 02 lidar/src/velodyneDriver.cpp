@@ -611,6 +611,7 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                 /* START TODO: you need to fix the following code
                  *
                  */
+                /////////
                 sin_theta = 0;				// 原始方位角
                 cos_theta = 0;
                 sin_ctheta = 0;
