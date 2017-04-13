@@ -611,32 +611,33 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                 /* START TODO: you need to fix the following code
                  *
                  */
-                sin_theta = 0;				// 原始方位角
-                cos_theta = 0;
-                sin_ctheta = 0;
-                cos_ctheta = 0;
-                sin_omiga = 0;
-                cos_omiga = 0;
+
+                sin_theta = sinAzimuth[rotational_pos];				// 原始方位角				
+                cos_theta = cosAzimuth[rotational_pos];
+                sin_ctheta = cor_sinAzimuth[firingNO][rotational_pos];
+                cos_ctheta = cor_cosAzimuth[firingNO][rotational_pos];
+                sin_omiga = sin_vertCorrection[firingNO];
+                cos_omiga = cos_vertCorrection[firingNO];
 
                 // 极坐标映射到直角坐标
-                shotobj.pt[heightNO].x = 0;
-                shotobj.pt[heightNO].y = 0;
-                shotobj.pt[heightNO].z = 0;
-                shotobj.pt[heightNO].x -= 0;
-                shotobj.pt[heightNO].y += 0;
+                shotobj.pt[heightNO].x = corredistance * cos_omiga * cos_ctheta;
+                shotobj.pt[heightNO].y = corredistance * cos_omiga * sin_ctheta;
+                shotobj.pt[heightNO].z = corredistance * sin_omiga + vert_offsetCorrection[firingNO];
+                shotobj.pt[heightNO].x -= horiz_offsetCorrection[firingNO] * cos_ctheta;
+                shotobj.pt[heightNO].y += horiz_offsetCorrection[firingNO] * sin_ctheta;
 
 
                 // m to cm
-                shotobj.pt[heightNO].x *= 0;
-                shotobj.pt[heightNO].y *= 0;
-                shotobj.pt[heightNO].z *= 0;
-
-                shotobj.pt[heightNO].i = 0;
+                shotobj.pt[heightNO].x *= 100;
+                shotobj.pt[heightNO].y *= 100;
+                shotobj.pt[heightNO].z *= 100;
+                shotobj.pt[heightNO].i = intensity;
 
                 /* END TODO: you need to fix the above code
                  *
                  */
-                 
+           
+
                 shotobj.pt[heightNO].point_type = POINT_TYPE_INITIAL;
 
                 // set circle id
@@ -703,4 +704,6 @@ void VelodyneDriver::printPacket(VelodyneDataRaw::velodyne_packet_t &packet, int
     //printf("%02x %02x %02x %02x\n",packet.status_string[0], packet.status_string[1], packet.status_string[2], packet.status_string[3]);
     //printf("\n\n\n\n");
 }
+
+
 
