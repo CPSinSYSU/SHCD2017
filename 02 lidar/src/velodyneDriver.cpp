@@ -611,27 +611,27 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                 /* START TODO: you need to fix the following code
                  *
                  */
-                sin_theta = 0;				// 原始方位角
-                cos_theta = 0;
-                sin_ctheta = 0;
-                cos_ctheta = 0;
-                sin_omiga = 0;
-                cos_omiga = 0;
+                sin_theta = sinAzimuth[rotational_pos];				// 旋转总角度正弦值
+                cos_theta = cosAzimuth[rotational_pos];				// 旋转总角度余弦值
+                sin_ctheta = cor_sinAzimuth[firingNO][rotational_pos]; //旋转角正弦值
+                cos_ctheta = cor_cosAzimuth[firingNO][rotational_pos]; //旋转角余弦值
+                sin_omiga = sin_vertCorrection[firingNO];			//与z轴夹角正弦值
+                cos_omiga = cos_vertCorrection[firingNO];			//与Z轴夹角余弦值
 
                 // 极坐标映射到直角坐标
-                shotobj.pt[heightNO].x = 0;
-                shotobj.pt[heightNO].y = 0;
-                shotobj.pt[heightNO].z = 0;
-                shotobj.pt[heightNO].x -= 0;
-                shotobj.pt[heightNO].y += 0;
+                shotobj.pt[heightNO].x = corredistance * cos_omiga * cos_theta; //将距离映射到x轴
+                shotobj.pt[heightNO].y = corredistance * cos_omiga * sin_theta;	//将距离映射到Y轴
+                shotobj.pt[heightNO].z = corredistance * sin_omiga + vert_offsetCorrection[firingNO]; //将距离映射到Z轴并且添加垂直偏转
+                shotobj.pt[heightNO].x -= horiz_offsetCorrection[firingNO] * cos_ctheta;	//添加x方向偏转距离
+                shotobj.pt[heightNO].y += horiz_offsetCorrection[firingNO] * sin_ctheta;	//添加y方向偏转距离
 
 
                 // m to cm
-                shotobj.pt[heightNO].x *= 0;
-                shotobj.pt[heightNO].y *= 0;
-                shotobj.pt[heightNO].z *= 0;
+                shotobj.pt[heightNO].x *= 100;//度量转换
+                shotobj.pt[heightNO].y *= 100;
+                shotobj.pt[heightNO].z *= 100;
 
-                shotobj.pt[heightNO].i = 0;
+                shotobj.pt[heightNO].i = intensity;//给予一个扫描强度
 
                 /* END TODO: you need to fix the above code
                  *
