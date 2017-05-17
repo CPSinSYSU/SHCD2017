@@ -1,0 +1,8 @@
+# intermediate build files
+build/
+
+# recording pcap files
+*.pcap
+
+# installed project execution program
+Velodyne_viewer
