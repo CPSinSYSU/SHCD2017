@@ -265,21 +265,23 @@ void drawLineGLRGB(float x1, float y1, float z1, float x2, float y2, float z2,
  */
 void drawTextRGB(float x, float y, float z, float r, float g, float b, char* outputstring)
 {
-    glPushMatrix();
+    glRasterPos3f(x, y, z);
     glColor3f(r, g, b);
+
 #ifdef WIN32
+    glPushMatrix();
     // Windows系统中，可以使用wglUseFontBitmaps函数来批量的产生显示字符用的显示列表
     wglUseFontBitmaps(wglGetCurrentDC(), 0, 255, 100);
-#else
-    //TODO: not-achieved function
-    //glutUseFontBitmaps( ,0, 255, 100)
-#endif
-
     glListBase(100);
-    glRasterPos3f(x, y, z);
     glCallLists(strlen(outputstring), GL_UNSIGNED_BYTE, outputstring);
 
     glPopMatrix();
+#else
+    int textIdx = 0;
+    while(outputstring[textIdx] != '\0') {
+    	
+    }
+#endif
 }
 
 void drawCircle(float center_x, float center_y, float radius, float r, float g, float b, float psize)
@@ -391,6 +393,8 @@ void myDisplay(void)
     drawLineGLRGB(0., 0., 0., 500., 0., 0., 1., 0., 0., 3.0);
     drawLineGLRGB(0., 0., 0., 0., 800., 0., 0., 1., 0., 3.0);
     drawLineGLRGB(0., 0., 0., 0., 0., 350., 0., 0., 1., 3.0);
+
+    drawTextRGB(0, -10., 0, 0., 0., 1., "VelodyneHDL-Viewer");
 
     switch (show_state)
     {
