@@ -7,7 +7,7 @@
 #include "velodyneScanner.h"
 #include "velodyneThread.h"
 
-#include "string.h"         // for memcpy
+#include "string.h"                 /* memcpy */
 #include <stdio.h>
 
 

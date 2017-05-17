@@ -633,6 +633,8 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
          */
         rotational_pos = packet.blocks[block].rotational_pos;
 
+        /* do the azimuth filters*/ 
+
         for (unsigned laser = 0; laser < VELODYNE_NUM_BEAMS_IN_ONE_BLOCK; laser++)
         {
 #ifdef USE_VLP_16_
@@ -647,6 +649,9 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
 #endif
 
             heightNO = velodyne_firingOrder_to_heightOrder(firingNO);
+
+            /* do the vertical filters */
+
         #if 0
             printf("DISTANCE_MAXIMUM=%d, DISTANCE_MINIMUM=%d\n",
                    DISTANCE_MAXIMUM, DISTANCE_MINIMUM);
@@ -671,7 +676,6 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                     printf("#%d: %d\n", velodyne_data.shots.size(), packet.blocks[block].lasers[laser].distance);
                 }
 #endif
-
                 /*
                  *  one byte of intensity information (0 – 255, with 255 being the most intense return).
                  *  A zero return indicates no return up to 65 meters
