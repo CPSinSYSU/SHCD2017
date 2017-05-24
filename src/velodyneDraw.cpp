@@ -279,7 +279,7 @@ void drawTextRGB(float x, float y, float z, float r, float g, float b, char* out
 #else
     int textIdx = 0;
     while(outputstring[textIdx] != '\0') {
-    	
+    	textIdx++;
     }
 #endif
 }
