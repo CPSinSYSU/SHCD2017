@@ -46,6 +46,7 @@ void MouseMove(int x, int y);
 #define SHOW_NEGATIVE_OBSTACLE	5
 void drawCar(float angle);
 void drawAllPoints(int psize, int mode);
+void MydrawAllPoints(int psize, int mode=2); //lxs
 void drawPointsGridCell(float angle, int psize);
 void drawPointsPieCell(float angle, int psize);
 void drawPointsHeightMap(int psize);

@@ -9,6 +9,8 @@
  *	Timer Processing Function
  *
  ***************************************************************************/
+#include <stdio.h> //for FILE ,lxs 
+
 #ifdef WIN32
 #include <Windows.h>
 #endif // WIN32
@@ -41,5 +43,7 @@ extern int g_scanBufferSize;
 extern int g_scanBufferReadIdx;
 extern int g_scanBufferWriteIdx;
 extern int g_scanDrop;
+
+extern FILE* g_fout;//lxs
 
 #endif

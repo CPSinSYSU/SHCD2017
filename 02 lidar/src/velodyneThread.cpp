@@ -56,6 +56,8 @@
 
 #include <string.h>         // for memset
 
+#include <stdio.h>          // for FILE ,lxs
+
 // pthread id
 pthread_t g_socket_th;
 pthread_t g_opengl_th;
@@ -68,6 +70,8 @@ int g_scanBufferSize = 0;
 int g_scanBufferReadIdx = 0;
 int g_scanBufferWriteIdx = 0;
 int g_scanDrop = 0;
+
+FILE* g_fout = NULL; //lxs
 
 /*
  * 构造以时间作为前缀的.pcap文件名
@@ -157,7 +161,7 @@ void* SocketThread(void* arg)
     sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sockfd == INVALID_SOCKET)
     {
-        printf("fail to create socket(socket thread dumped)\n");
+        printf("fail to create socket(socket thread dumped).\n");
         return NULL;
     }
     // 512k
@@ -228,12 +232,12 @@ void* SocketThread(void* arg)
                                   (struct sockaddr *)&client, &client_length);
         if (bytes_received != VELODYNE_DATA_SIZE)
         {
-            printf("Socket set up problem(socket thread dumped)");
+            printf("Socket set up problem(socket thread dumped)\n");
             goto socket_out;
         }
         pkt_count++;
 
-        //pthread_spin_lock(&g_scanBuffer_lock);
+        pthread_spin_lock(&g_scanBuffer_lock); //lxs
 
         if (velodyneDriver.isNewScan(pkt))
         {
@@ -271,7 +275,7 @@ void* SocketThread(void* arg)
             }
 
             pktNumInCircle = 0;
-            printf("g_scanBufferWrited...\n");
+//            printf("g_scanBufferWrited...\n"); //lxs
 
         } // end of if (velodyneDriver.isNewScan(pkt))
 
@@ -282,7 +286,9 @@ void* SocketThread(void* arg)
             pktNumInCircle++;
         }
 
-        //pthread_spin_unlock(&g_scanBuffer_lock);
+        pthread_spin_unlock(&g_scanBuffer_lock); //lxs
+
+
         /**
          * glutPostRedisplay does not refresh anything.
          * It just sets a flag and that's it.
@@ -392,6 +398,16 @@ void TimerProc(int num)
 extern int argc_gl;
 extern char **argvs_gl;
 void* OpenGLThread(void* arg){
+    printf("OpenGLThread started...\n");
+
+    g_fout = fopen("out.txt", "w+");// lxs
+    if(g_fout == NULL){
+        printf("Cannot open file out.txt.\n");
+    }
     glutInit(&argc_gl, argvs_gl);
     MyGLDispIni();
+
+    fclose(g_fout);
+    
+    printf("OpenGLThread stoped...\n");
 }

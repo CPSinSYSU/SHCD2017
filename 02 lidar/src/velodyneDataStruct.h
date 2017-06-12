@@ -10,104 +10,104 @@
  ***************************************************************************/
 /*
  * added by durant35
- *	#pragma pack(i)(i = 1,2,4,8,16)À´ÉèÖÃ¶ÔÆë×Ö½ÚÊıÄ¿
- *	vs»¹¿ÉÒÔÔÚÏîÄ¿ÊôĞÔ-ÅäÖÃÊôĞÔ-c/c++-´úÂëÉú³É-½á¹¹³ÉÔ±¶ÔÆëÉèÖÃ
+ *  #pragma pack(i)(i = 1,2,4,8,16)æ¥è®¾ç½®å¯¹é½å­—èŠ‚æ•°ç›®
+ *  vsè¿˜å¯ä»¥åœ¨é¡¹ç›®å±æ€§-é…ç½®å±æ€§-c/c++-ä»£ç ç”Ÿæˆ-ç»“æ„æˆå‘˜å¯¹é½è®¾ç½®
  */
 #pragma pack(1)
 
 #include <stdint.h>
 #include <vector>
 
-#define VELODYNE_NUM_BEAMS_IN_ONE_BLOCK			32
-#define VELODYNE_NUM_BLOCKS_IN_ONE_PKT			12
+#define VELODYNE_NUM_BEAMS_IN_ONE_BLOCK         32
+#define VELODYNE_NUM_BLOCKS_IN_ONE_PKT          12
 
-#define VELODYNE_DATA_PORT						2368
-#define VELODYNE_POSITION_PORT					8308
+#define VELODYNE_DATA_PORT                      2368
+#define VELODYNE_POSITION_PORT                  8308
 
-#define VELODYNE_PACKET_SIZE					1248
-#define VELODYNE_DATA_SIZE				        1206
-#define VELODYNE_UDP_OFFSET						42
-#define VELODYNE_PACKET_WITH_PCAPHDR_SIZE		1264
-#define VELODYNE_UDP_PCAP_OFFSET				58
+#define VELODYNE_PACKET_SIZE                    1248
+#define VELODYNE_DATA_SIZE                      1206
+#define VELODYNE_UDP_OFFSET                     42
+#define VELODYNE_PACKET_WITH_PCAPHDR_SIZE       1264
+#define VELODYNE_UDP_PCAP_OFFSET                58
 
 #ifdef USE_VLP_16_
-    #define VELODYNE_NUM_BEAMS_IN_ONE_SHOT		16
-    #define PKT_NUM_IN_CIRCLE_LOWER_BOUND		75
+    #define VELODYNE_NUM_BEAMS_IN_ONE_SHOT      16
+    #define PKT_NUM_IN_CIRCLE_LOWER_BOUND       75
     // height order: #7 ---> verticalAngle:-1.00
     // height order: #8 ---> verticalAngle:1.00
-    #define UPPER_VERT_FROM						8
-    #define DOWN_VERT_TO						7
+    #define UPPER_VERT_FROM                     8
+    #define DOWN_VERT_TO                        7
 #elif USE_HDL_64E_
-    #define VELODYNE_NUM_BEAMS_IN_ONE_SHOT		64
-    #define PKT_NUM_IN_CIRCLE_LOWER_BOUND		360
-    // ¸ßÓÚLidarµÄÕÏ°­Îï <--- ¸ßÓÚµÚ57Ïß¼¤¹â(height order)ËùÔÚ´¹Ö±½Ç¶ÈÆ½Ãæ(Õë¶Ô64Ïß¼¤¹âÀ×´ï)
-    // #57 ---> verticalAngle:-0.022350(½üËÆË®Æ½)
+    #define VELODYNE_NUM_BEAMS_IN_ONE_SHOT      64
+    #define PKT_NUM_IN_CIRCLE_LOWER_BOUND       360
+    // é«˜äºLidarçš„éšœç¢ç‰© <--- é«˜äºç¬¬57çº¿æ¿€å…‰(height order)æ‰€åœ¨å‚ç›´è§’åº¦å¹³é¢(é’ˆå¯¹64çº¿æ¿€å…‰é›·è¾¾)
+    // #57 ---> verticalAngle:-0.022350(è¿‘ä¼¼æ°´å¹³)
     // #58 ---> 0.317822
-    #define DOWN_VERT_TO						7
-    #define UPPER_VERT_FROM						57
+    #define DOWN_VERT_TO                        7
+    #define UPPER_VERT_FROM                     57
 #else
-    #define VELODYNE_NUM_BEAMS_IN_ONE_SHOT		32
-    #define PKT_NUM_IN_CIRCLE_LOWER_BOUND		180
+    #define VELODYNE_NUM_BEAMS_IN_ONE_SHOT      32
+    #define PKT_NUM_IN_CIRCLE_LOWER_BOUND       180
     // height order: #22 ---> verticalAngle:-1.33
     // height order: #23 ---> verticalAngle:0.00
     // height order: #24 ---> verticalAngle:1.33
-    #define UPPER_VERT_FROM						23
-    #define DOWN_VERT_TO						UPPER_VERT_FROM
+    #define UPPER_VERT_FROM                     23
+    #define DOWN_VERT_TO                        UPPER_VERT_FROM
 #endif
 
-/*************************************** ¼¤¹âµãÀàĞÍ ***************************************/
+/*************************************** æ¿€å…‰ç‚¹ç±»å‹ ***************************************/
 #define POINT_TYPE_INITIAL       0x00000000
-// ÎŞĞ§µã£¬´òµ½¾àÀëÍâ£¬»òÕßÔÚÎÒÃÇ¶¨ÒåµÄ¾àÀëÖ®Íâ
+// æ— æ•ˆç‚¹ï¼Œæ‰“åˆ°è·ç¦»å¤–ï¼Œæˆ–è€…åœ¨æˆ‘ä»¬å®šä¹‰çš„è·ç¦»ä¹‹å¤–
 #define POINT_TYPE_INVALID       0x00000001
-// ´óÓÚ°ë¾¶¾ùÖµÆ½¾ù²îãĞÖµ
+// å¤§äºåŠå¾„å‡å€¼å¹³å‡å·®é˜ˆå€¼
 #define POINT_TYPE_ABOVE_DELTA_R 0x00000002
-// Ğ¡ÓÚ°ë¾¶¾ùÖµÆ½¾ù²îãĞÖµ
+// å°äºåŠå¾„å‡å€¼å¹³å‡å·®é˜ˆå€¼
 #define POINT_TYPE_BELOW_DELTA_R 0x00000004
-// ´óÓÚ¸ß³Ì¾ùÖµÆ½¾ù²îãĞÖµ
+// å¤§äºé«˜ç¨‹å‡å€¼å¹³å‡å·®é˜ˆå€¼
 #define POINT_TYPE_ABOVE_DELTA_Z 0x00000008
-// Ğ¡ÓÚ¸ß³Ì¾ùÖµÆ½¾ù²îãĞÖµ
+// å°äºé«˜ç¨‹å‡å€¼å¹³å‡å·®é˜ˆå€¼
 #define POINT_TYPE_BELOW_DELTA_Z 0x00000010
-// ´óÓÚ°ë¾¶ãĞÖµ
+// å¤§äºåŠå¾„é˜ˆå€¼
 #define POINT_TYPE_ABOVE_R       0x00000020
-// Ğ¡ÓÚ°ë¾¶ãĞÖµ
+// å°äºåŠå¾„é˜ˆå€¼
 #define POINT_TYPE_BELOW_R       0x00000040
-// ¿Ó±ßÔµµã
+// å‘è¾¹ç¼˜ç‚¹
 #define POINT_TYPE_HOLE_EDGE     0x00000080
-// ¿ÓÄÚµã
+// å‘å†…ç‚¹
 #define POINT_TYPE_HOLE_INSIDE   0x00000100
 
-/**************************************** ¸ñÍøÀàĞÍ *****************************************/
-#define CELL_TYPE_INITIAL				0x00000000
-// ÎŞĞ§Cell£¬ÀïÃæÃ»ÓĞµã
-#define CELL_TYPE_INVALID       		0x00000001
-////TODO: ´óÓÚ°ë¾¶¾ùÖµÆ½¾ù²îãĞÖµ
-//#define CELL_TYPE_ABOVE_DELTA_R  		0x00000002
-////TODO: Ğ¡ÓÚ°ë¾¶¾ùÖµÆ½¾ù²îãĞÖµ
-//#define CELL_TYPE_BELOW_DELTA_R  		0x00000004
-// ´óÓÚ¸ß³Ì¾ùÖµÆ½¾ù²îãĞÖµ
-#define CELL_TYPE_ABOVE_DELTA_Z  		0x00000008
-// Ğ¡ÓÚ¸ß³Ì¾ùÖµÆ½¾ù²îãĞÖµ
-#define CELL_TYPE_BELOW_DELTA_Z  		0x00000010
-// ´óÓÚ°ë¾¶ãĞÖµ
-#define CELL_TYPE_ABOVE_R       		0x00000020
-// Ğ¡ÓÚ°ë¾¶ãĞÖµ
-#define CELL_TYPE_BELOW_R       		0x00000040
-// ±ÈÀ×´ï¸ß
-#define CELL_TYPE_ABOVE_LIDAR       	0x00000080
-// ÔÚÕÏ°­Îï¸ú×Ù¼ì²â¾àÀë·¶Î§ÄÚ
-#define CELL_TYPE_IN_OBSTACLE_RANGE		0x00000100
-// ·ÇÖĞ¿Õ£¬ÔÚĞ£Ô°ÀïÃæÈç¹ûÍ·¶¥ÓĞÊ÷£¬ÔòÎªÖĞ¿Õ
-#define CELL_TYPE_NOT_HOLLOW       		0x00000200
-// ¸ºÕÏ°­Îï
+/**************************************** æ ¼ç½‘ç±»å‹ *****************************************/
+#define CELL_TYPE_INITIAL               0x00000000
+// æ— æ•ˆCellï¼Œé‡Œé¢æ²¡æœ‰ç‚¹
+#define CELL_TYPE_INVALID               0x00000001
+////TODO: å¤§äºåŠå¾„å‡å€¼å¹³å‡å·®é˜ˆå€¼
+//#define CELL_TYPE_ABOVE_DELTA_R       0x00000002
+////TODO: å°äºåŠå¾„å‡å€¼å¹³å‡å·®é˜ˆå€¼
+//#define CELL_TYPE_BELOW_DELTA_R       0x00000004
+// å¤§äºé«˜ç¨‹å‡å€¼å¹³å‡å·®é˜ˆå€¼
+#define CELL_TYPE_ABOVE_DELTA_Z         0x00000008
+// å°äºé«˜ç¨‹å‡å€¼å¹³å‡å·®é˜ˆå€¼
+#define CELL_TYPE_BELOW_DELTA_Z         0x00000010
+// å¤§äºåŠå¾„é˜ˆå€¼
+#define CELL_TYPE_ABOVE_R               0x00000020
+// å°äºåŠå¾„é˜ˆå€¼
+#define CELL_TYPE_BELOW_R               0x00000040
+// æ¯”é›·è¾¾é«˜
+#define CELL_TYPE_ABOVE_LIDAR           0x00000080
+// åœ¨éšœç¢ç‰©è·Ÿè¸ªæ£€æµ‹è·ç¦»èŒƒå›´å†…
+#define CELL_TYPE_IN_OBSTACLE_RANGE     0x00000100
+// éä¸­ç©ºï¼Œåœ¨æ ¡å›­é‡Œé¢å¦‚æœå¤´é¡¶æœ‰æ ‘ï¼Œåˆ™ä¸ºä¸­ç©º
+#define CELL_TYPE_NOT_HOLLOW            0x00000200
+// è´Ÿéšœç¢ç‰©
 #define CELL_TYPE_NEGATIVE_OBSTACLE     0x00000400
 
-/**************************************** ¼¯ÈºÀàĞÍ *****************************************/
-// ±ÈÀ×´ï¸ß
-#define CUDE_TYPE_ABOVE_LIDAR       	0x00000001
-// ÔÚÕÏ°­Îï¸ú×Ù¼ì²â¾àÀë·¶Î§ÄÚ
-#define CUDE_TYPE_IN_OBSTACLE_RANGE		0x00000002
-///TODO: ¸Ã¸ñ×ÓÀïÓĞË®Æ½ sick µÄÉ¨Ãèµã£¬ËµÃ÷¸Ã¸ñ×ÓÊÇÕÏ°­Îï¸ñ×Ó
-//#define CUDE_TYPE_CONTAIN_SICK        	0x00000400
+/**************************************** é›†ç¾¤ç±»å‹ *****************************************/
+// æ¯”é›·è¾¾é«˜
+#define CUDE_TYPE_ABOVE_LIDAR           0x00000001
+// åœ¨éšœç¢ç‰©è·Ÿè¸ªæ£€æµ‹è·ç¦»èŒƒå›´å†…
+#define CUDE_TYPE_IN_OBSTACLE_RANGE     0x00000002
+///TODO: è¯¥æ ¼å­é‡Œæœ‰æ°´å¹³ sick çš„æ‰«æç‚¹ï¼Œè¯´æ˜è¯¥æ ¼å­æ˜¯éšœç¢ç‰©æ ¼å­
+//#define CUDE_TYPE_CONTAIN_SICK            0x00000400
 
 
 class VelodyneDataRaw
@@ -116,25 +116,26 @@ public:
     static const char magic[4];
 
     /*
-     *	Velodyne data structure(1206 bytes in each packet)
-     *		12*(2[start identifier]+2[Rotational]+32*3)
-     *	  + 6(status data:4[GPS timestamp]+1[Status Byte]+1[Status Value])
-     *	// TODO: ÄÚ´æ¶ÔÆë sizeof(vel_laser_t) == 4 <---- #pragma pack(1)
+     *  Velodyne data structure(1206 bytes in each packet)
+     *      12*(2[start identifier]+2[Rotational]+32*3)
+     *    + 6(status data:4[GPS timestamp]+1[Status Byte]+1[Status Value])
+     *  // TODO: å†…å­˜å¯¹é½ sizeof(vel_laser_t) == 4 <---- #pragma pack(1)
      */
     typedef struct
     {
-        uint16_t distance;  										// 2mm increments
-        uint8_t intensity;  										// 255 being brightest
+        uint16_t distance;                                          // 2mm increments
+        uint8_t intensity;                                          // 255 being brightest
     }  velodyne_fire_t;
 
     /*
-     *	¶ÔÓÚ16Ïß¼¤¹âÀ×´ï ½«ÏàÍ¬Ğı½ÇµÄÁ½´Îfire¹éÎªÒ»¸öblock
-     *	¶ÔÓÚ64Ïß¼¤¹âÀ×´ï Ò»´Îfire²ğ·Ö³ÉÁ½¸öblock
+     *  å¯¹äº16çº¿æ¿€å…‰é›·è¾¾ å°†ç›¸åŒæ—‹è§’çš„ä¸¤æ¬¡fireå½’ä¸ºä¸€ä¸ªblock
+     *  å¯¹äº64çº¿æ¿€å…‰é›·è¾¾ ä¸€æ¬¡fireæ‹†åˆ†æˆä¸¤ä¸ªblock
+     *  32çº¿ï¼Œä¸€æ¬¡fireä¸€ä¸ªblock (lxs)
      */
     typedef struct
     {
         uint16_t start_identifier;
-        uint16_t rotational_pos;									// 0-35999  divide by 100 for degrees
+        uint16_t rotational_pos;                                    // 0-35999  divide by 100 for degrees
         velodyne_fire_t lasers[VELODYNE_NUM_BEAMS_IN_ONE_BLOCK];
     }  velodyne_block_t;
 
@@ -146,32 +147,32 @@ public:
         uint8_t status_value;
     }  velodyne_packet_t;
 
-        // ¼ÇÂ¼Ò»¸ö¼¤¹âµãµÄËùÓĞÊı¾İ
+        // è®°å½•ä¸€ä¸ªæ¿€å…‰ç‚¹çš„æ‰€æœ‰æ•°æ®
     typedef struct
     {
-        // ×ø±ê
+        // åæ ‡
         float x, y, z;
-        // ÊôÓÚÄÄ¸ö circle(´¹Ö±½Ç¶ÈÆ½Ãæ)
+        // å±äºå“ªä¸ª circle(å‚ç›´è§’åº¦å¹³é¢)
         int circleID;
-        // ÊôÓÚÄÄ´Î shot
+        // å±äºå“ªæ¬¡ shot
         int shotID;
-        // °ë¾¶ºÍ y/xµÄÖµ(ÈıÎ¬µãÍ¶Ó°µ½x-yÆ½Ãæ)
+        // åŠå¾„å’Œ y/xçš„å€¼(ä¸‰ç»´ç‚¹æŠ•å½±åˆ°x-yå¹³é¢)
         float rad, tan_theta;
-        // ÑÕÉ«ºÍ·´ÉäÇ¿¶È
+        // é¢œè‰²å’Œåå°„å¼ºåº¦
         unsigned char r, g, b, i;
-        // ¸ß³Ì¡¢°ë¾¶¡¢·´ÉäÇ¿¶ÈµÄÆ½¾ù²î
+        // é«˜ç¨‹ã€åŠå¾„ã€åå°„å¼ºåº¦çš„å¹³å‡å·®
         float scanline_drtZ;
         float scanline_drtRad;
         float scanline_drtI;
         // reservd
         float scanline_countZ;
         float scanline_countD;
-        // µãµÄÀàĞÍ
+        // ç‚¹çš„ç±»å‹
         int point_type;
         int objectID;
     } xpoint_t;
 
-    // 32Ïß¼¤¹âÀ×´ïÒ»¸öshotÓĞ32¸öµã£»16Ïß¼¤¹âÀ×´ïÓĞ16¸öµã
+    // 32çº¿æ¿€å…‰é›·è¾¾ä¸€ä¸ªshotæœ‰32ä¸ªç‚¹ï¼›16çº¿æ¿€å…‰é›·è¾¾æœ‰16ä¸ªç‚¹
     typedef struct
     {
         xpoint_t pt[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
@@ -192,24 +193,24 @@ public:
     //static const char magic[4];
 
     /*
-    *	Velodyne data structure(1206 bytes in each packet)
-    *		12*(2[start identifier]+2[Rotational]+32*3)
-    *	  + 6(status data:4[GPS timestamp]+1[Status Byte]+1[Status Value])
-    *	// TODO: ÄÚ´æ¶ÔÆë sizeof(vel_laser_t) == 4 <---- #pragma pack(1)
+    *   Velodyne data structure(1206 bytes in each packet)
+    *       12*(2[start identifier]+2[Rotational]+32*3)
+    *     + 6(status data:4[GPS timestamp]+1[Status Byte]+1[Status Value])
+    *   // TODO: å†…å­˜å¯¹é½ sizeof(vel_laser_t) == 4 <---- #pragma pack(1)
     */
     typedef struct
     {
-        uint16_t distance;  										// 2mm increments
-        uint8_t intensity;  										// 255 being brightest
+        uint16_t distance;                                          // 2mm increments
+        uint8_t intensity;                                          // 255 being brightest
     }  velodyne_fire_t;
     /*
-    *	¶ÔÓÚ16Ïß¼¤¹âÀ×´ï ½«ÏàÍ¬Ğı½ÇµÄÁ½´Îfire¹éÎªÒ»¸öblock
-    *	¶ÔÓÚ64Ïß¼¤¹âÀ×´ï Ò»´Îfire²ğ·Ö³ÉÁ½¸öblock
+    *   å¯¹äº16çº¿æ¿€å…‰é›·è¾¾ å°†ç›¸åŒæ—‹è§’çš„ä¸¤æ¬¡fireå½’ä¸ºä¸€ä¸ªblock
+    *   å¯¹äº64çº¿æ¿€å…‰é›·è¾¾ ä¸€æ¬¡fireæ‹†åˆ†æˆä¸¤ä¸ªblock
     */
     typedef struct
     {
         uint16_t start_identifier;
-        uint16_t rotational_pos;									// 0-35999  divide by 100 for degrees
+        uint16_t rotational_pos;                                    // 0-35999  divide by 100 for degrees
         velodyne_fire_t lasers[VELODYNE_NUM_BEAMS_IN_ONE_BLOCK];
     }  velodyne_block_t;
 
@@ -221,48 +222,48 @@ public:
         uint8_t status_value;
     }  velodyne_packet_t;
 
-    // ¼ÇÂ¼Ò»¸ö¼¤¹âµãµÄËùÓĞÊı¾İ
+    // è®°å½•ä¸€ä¸ªæ¿€å…‰ç‚¹çš„æ‰€æœ‰æ•°æ®
     typedef struct
     {
-        // ×ø±ê
+        // åæ ‡
         float x, y, z;
-        // ÊôÓÚÄÄ¸ö circle(´¹Ö±½Ç¶ÈÆ½Ãæ)
+        // å±äºå“ªä¸ª circle(å‚ç›´è§’åº¦å¹³é¢)
         int circleID;
-        // ÊôÓÚÄÄ´Î shot
+        // å±äºå“ªæ¬¡ shot
         int shotID;
-        // °ë¾¶ºÍ y/xµÄÖµ(ÈıÎ¬µãÍ¶Ó°µ½x-yÆ½Ãæ)
+        // åŠå¾„å’Œ y/xçš„å€¼(ä¸‰ç»´ç‚¹æŠ•å½±åˆ°x-yå¹³é¢)
         float rad, tan_theta;
-        // ÑÕÉ«ºÍ·´ÉäÇ¿¶È
+        // é¢œè‰²å’Œåå°„å¼ºåº¦
         unsigned char r, g, b, i;
-        // ¸ß³Ì¡¢°ë¾¶¡¢·´ÉäÇ¿¶ÈµÄÆ½¾ù²î
+        // é«˜ç¨‹ã€åŠå¾„ã€åå°„å¼ºåº¦çš„å¹³å‡å·®
         float scanline_drtZ;
         float scanline_drtRad;
         float scanline_drtI;
         // reservd
         float scanline_countZ;
         float scanline_countD;
-        // µãµÄÀàĞÍ
+        // ç‚¹çš„ç±»å‹
         int point_type;
         int objectID;
     } xpoint_t;
 
-    // ±íÊ¾Ò»¸öCircleÖĞµÄÒ»¸öÁ¬ĞøÏß¶Î
+    // è¡¨ç¤ºä¸€ä¸ªCircleä¸­çš„ä¸€ä¸ªè¿ç»­çº¿æ®µ
     typedef struct
     {
-        // ¿ªÊ¼ĞòºÅºÍ½áÊøĞòºÅ
+        // å¼€å§‹åºå·å’Œç»“æŸåºå·
         int start;
         int end;
     } continuousLine_t;
-    // ±íÊ¾Ò»¸öCircleÖĞµÄÏß¶Î¼¯ºÏ
+    // è¡¨ç¤ºä¸€ä¸ªCircleä¸­çš„çº¿æ®µé›†åˆ
     typedef std::vector<continuousLine_t> continuousLines_t;
 
-    // 32Ïß¼¤¹âÀ×´ïÒ»¸öshotÓĞ32¸öµã£»16Ïß¼¤¹âÀ×´ïÓĞ16¸öµã
+    // 32çº¿æ¿€å…‰é›·è¾¾ä¸€ä¸ªshotæœ‰32ä¸ªç‚¹ï¼›16çº¿æ¿€å…‰é›·è¾¾æœ‰16ä¸ªç‚¹
     typedef struct
     {
         xpoint_t pt[VELODYNE_NUM_BEAMS_IN_ONE_SHOT];
     } shot_t;
 
-    /** Í³¼ÆÁ¿£¬ÏÖÔÚÃ»ÔõÃ´ÓÃ*/
+    /** ç»Ÿè®¡é‡ï¼Œç°åœ¨æ²¡æ€ä¹ˆç”¨*/
     typedef struct
     {
         float min_x, min_y, min_z;
@@ -279,61 +280,61 @@ public:
         float   max_scanline_countD;
     } pointStatistics_t;
 
-    // ¸ñÍøµ¥Ôª: ±ıĞÍÍø¸ñµ¥Ôª£¬ÀïÃæ°üº¬ÁË¸Ãµ¥ÔªËùº¬ËùÓĞµãµÄÖ¸Õë
+    // æ ¼ç½‘å•å…ƒ: é¥¼å‹ç½‘æ ¼å•å…ƒï¼Œé‡Œé¢åŒ…å«äº†è¯¥å•å…ƒæ‰€å«æ‰€æœ‰ç‚¹çš„æŒ‡é’ˆ
     typedef std::vector<xpoint_t*> cell_t;
-    // °ë¾¶·½ÏòÉÏµÄ ÏàÍ¬Ğı½ÇµÄ Ò»ÁĞ¸ñÍøµ¥Ôª
+    // åŠå¾„æ–¹å‘ä¸Šçš„ ç›¸åŒæ—‹è§’çš„ ä¸€åˆ—æ ¼ç½‘å•å…ƒ
     typedef std::vector<cell_t> pieAzimuth_t;
-    // Õû¸ö¸ñÍø£¬±ıĞÍºÍ·½¸ñĞÎ
+    // æ•´ä¸ªæ ¼ç½‘ï¼Œé¥¼å‹å’Œæ–¹æ ¼å½¢
     typedef std::vector<pieAzimuth_t> pieArray_t;
 
-    // ¸ñÍøµ¥ÔªµÄÌØÕ÷
+    // æ ¼ç½‘å•å…ƒçš„ç‰¹å¾
     typedef struct
     {
-        // x,y,zµÄ¾ùÖµ
+        // x,y,zçš„å‡å€¼
         float ave_x, ave_y, ave_z;
-        // x,y,zµÄ×îÖµ
+        // x,y,zçš„æœ€å€¼
         float min_x, min_y, min_z;
         float max_x, max_y, max_z;
-        // ¸ß³ÌÆ½¾ù²î
+        // é«˜ç¨‹å¹³å‡å·®
         float delta_z;
-        // ÓĞ¶àÉÙ¸öcircleµÄµã
+        // æœ‰å¤šå°‘ä¸ªcircleçš„ç‚¹
         int circleNum;
-        // µãµÄ¸öÊı
+        // ç‚¹çš„ä¸ªæ•°
         int size;
         unsigned int cellType;
-        // Ö¸ÏòµãµÄÊı¾İ½á¹¹
+        // æŒ‡å‘ç‚¹çš„æ•°æ®ç»“æ„
         cell_t* pCell;
         /*
-         *	¸ñÍøµ¥ÔªÔÚ¸ñÍøÖĞµÄÎ»ÖÃ
-         *		columnID: °ë¾¶·½ÏòÉÏÏàÍ¬Ğı½ÇµÄÒ»ÁĞ¸ñÍøµ¥ÔªÏÂ±ê
-         *		cellID: ¸ÃÁĞ¸ñÍøµ¥ÔªÖĞÓÉÄÚµ½ÍâµÄ¸ñÍøÏÂ±ê
+         *  æ ¼ç½‘å•å…ƒåœ¨æ ¼ç½‘ä¸­çš„ä½ç½®
+         *      columnID: åŠå¾„æ–¹å‘ä¸Šç›¸åŒæ—‹è§’çš„ä¸€åˆ—æ ¼ç½‘å•å…ƒä¸‹æ ‡
+         *      cellID: è¯¥åˆ—æ ¼ç½‘å•å…ƒä¸­ç”±å†…åˆ°å¤–çš„æ ¼ç½‘ä¸‹æ ‡
          */
         int azimuthID;
         int radID;
     } pieFeature_t;
 
-    // ÏàÍ¬Ğı½Ç·½ÏòÉÏµÄÍø¸ñÌØÕ÷Êı×é
+    // ç›¸åŒæ—‹è§’æ–¹å‘ä¸Šçš„ç½‘æ ¼ç‰¹å¾æ•°ç»„
     typedef std::vector<pieFeature_t> pieFeatureAzimuth_t;
-    // Õû¸öÍø¸ñÌØÕ÷Êı×é
+    // æ•´ä¸ªç½‘æ ¼ç‰¹å¾æ•°ç»„
     typedef std::vector<pieFeatureAzimuth_t> pieFeatureArray_t;
 
 
-    // Ò»¸ö¼¯ÈºÀïÓĞºÃ¼¸¸öÍø¸ñ£¬Ã¿¸öÍø¸ñÌØÕ÷ÏàËÆ
+    // ä¸€ä¸ªé›†ç¾¤é‡Œæœ‰å¥½å‡ ä¸ªç½‘æ ¼ï¼Œæ¯ä¸ªç½‘æ ¼ç‰¹å¾ç›¸ä¼¼
     typedef std::vector<pieFeature_t*> pieCluster_t;
-    // ¼¯ÈºÊı×é
+    // é›†ç¾¤æ•°ç»„
     typedef std::vector<pieCluster_t> pieClusterSet_t;
-    // ¼¯ÈºµÄÌØÕ÷
+    // é›†ç¾¤çš„ç‰¹å¾
     typedef struct
     {
-        // x,y,zµÄ×îÖµ
+        // x,y,zçš„æœ€å€¼
         float min_x, min_y, min_z;
         float max_x, max_y, max_z;
         float size_x, size_y, size_z;
-        // ¸ù¾İÃ¿¸öcellÖĞ pointµÄÊıÁ¿¼ÓÈ¨ ¼ÆËã³öµÄÖĞĞÄ£¬¼«×ø±ê±íÊ¾
+        // æ ¹æ®æ¯ä¸ªcellä¸­ pointçš„æ•°é‡åŠ æƒ è®¡ç®—å‡ºçš„ä¸­å¿ƒï¼Œæåæ ‡è¡¨ç¤º
         float theta, radius;
-        // ¼¯ÈºÖĞcellµÄÊıÁ¿
+        // é›†ç¾¤ä¸­cellçš„æ•°é‡
         int size;
-        // ¼¯ÈºÖĞpointµÄÊıÁ¿
+        // é›†ç¾¤ä¸­pointçš„æ•°é‡
         int pointNumber;
         unsigned int clusterType;
     } pieClusterFeature_t;
@@ -345,63 +346,63 @@ public:
     typedef std::vector<clusterLine_t> clusterLineArray_t;
     typedef std::vector<clusterLineArray_t> clusterLineFeatureArray_t;
 
-    // ¸ñÍøµ¥Ôª:·½¸ñÈº
+    // æ ¼ç½‘å•å…ƒ:æ–¹æ ¼ç¾¤
     //typedef std::vector<xpoint_t*> cell_t;
-    // Ò»¸öÊúÅÅµÄÒ»ÁĞ·½¸ñµ¥Ôª
+    // ä¸€ä¸ªç«–æ’çš„ä¸€åˆ—æ–¹æ ¼å•å…ƒ
     typedef std::vector<cell_t> gridRow_t;
-    // Õû¸ö¸ñÍø: ·½¸ñĞÎ
+    // æ•´ä¸ªæ ¼ç½‘: æ–¹æ ¼å½¢
     typedef std::vector<gridRow_t> gridArray_t;
-    /* ·½¸ñµ¥ÔªÌØÕ÷ */
+    /* æ–¹æ ¼å•å…ƒç‰¹å¾ */
     typedef struct
     {
-        // x,y,zµÄ¾ùÖµ
+        // x,y,zçš„å‡å€¼
         float ave_x, ave_y, ave_z;
-        // x,y,zµÄ×îÖµ
+        // x,y,zçš„æœ€å€¼
         float min_x, min_y, min_z;
         float max_x, max_y, max_z;
-        // ×î´ó×îĞ¡y ¶ÔÓ¦µÄxÖµ
+        // æœ€å¤§æœ€å°y å¯¹åº”çš„xå€¼
         float min_y_x, max_y_x;
-        // ¸ß³ÌÓëÆ½¾ù¸ß³ÌµÄÆ«²îºÍ
+        // é«˜ç¨‹ä¸å¹³å‡é«˜ç¨‹çš„åå·®å’Œ
         float delta_z;
-        // ÓĞ¶àÉÙ¸öcircleµÄµã
+        // æœ‰å¤šå°‘ä¸ªcircleçš„ç‚¹
         int circleNum;
-        // µãµÄ¸öÊı
+        // ç‚¹çš„ä¸ªæ•°
         int size;
-        // ¸ñÍøÀàĞÍ
+        // æ ¼ç½‘ç±»å‹
         unsigned int cellType;
         unsigned int clusterID;
     } gridFeature_t;
-    // Ò»¸öÊúÅÅÍø¸ñÌØÕ÷Êı×é
+    // ä¸€ä¸ªç«–æ’ç½‘æ ¼ç‰¹å¾æ•°ç»„
     typedef std::vector<gridFeature_t> gridFeatureRow_t;
-    // Õû¸ö·½¸ñÍøÂçÌØÕ÷Êı×é
+    // æ•´ä¸ªæ–¹æ ¼ç½‘ç»œç‰¹å¾æ•°ç»„
     typedef std::vector<gridFeatureRow_t> gridFeatureArray_t;
 
-    // ·½¸ñ¼¯Èº(·½¸ñÌØÕ÷ĞÅÏ¢¼¯ºÏ) Ò»¸ö¼¯ÈºÀïÓĞºÃ¼¸¸ö·½¸ñ£¬Ã¿¸ö·½¸ñÌØÕ÷ÏàËÆ
+    // æ–¹æ ¼é›†ç¾¤(æ–¹æ ¼ç‰¹å¾ä¿¡æ¯é›†åˆ) ä¸€ä¸ªé›†ç¾¤é‡Œæœ‰å¥½å‡ ä¸ªæ–¹æ ¼ï¼Œæ¯ä¸ªæ–¹æ ¼ç‰¹å¾ç›¸ä¼¼
     typedef std::vector<gridFeature_t*> gridCluster_t;
-    // ¼¯ÈºÊı×é
+    // é›†ç¾¤æ•°ç»„
     typedef std::vector<gridCluster_t> gridClusterSet_t;
 
     /*
-     *	·½¸ñÈºÌØÕ÷
-     *	¶¯Ä¿±êµÄÌØÕ÷
+     *  æ–¹æ ¼ç¾¤ç‰¹å¾
+     *  åŠ¨ç›®æ ‡çš„ç‰¹å¾
      */
     typedef struct
     {
-        // x,y,zµÄ×îÖµ
+        // x,y,zçš„æœ€å€¼
         float min_x, min_y, min_z;
         float max_x, max_y, max_z;
-        // ×î´ó×îĞ¡Y ¶ÔÓ¦µÄx
+        // æœ€å¤§æœ€å°Y å¯¹åº”çš„x
         float min_y_x, max_y_x;
-        // Ä¿±ê³ß´ç
+        // ç›®æ ‡å°ºå¯¸
         float size_x, size_y, size_z;
-        // ¼¯Èº´óĞ¡
+        // é›†ç¾¤å¤§å°
         int size;
         unsigned int clusterType;
     } gridClusterFeature_t;
 
     typedef std::vector<gridClusterFeature_t> gridClusterFeatureSet_t;
 
-    // ¼¯ÈºÉÏÃ¿Ò»È¦ÏßÀïĞ¡Ïß¶ÎÌØÕ÷
+    // é›†ç¾¤ä¸Šæ¯ä¸€åœˆçº¿é‡Œå°çº¿æ®µç‰¹å¾
     typedef struct
     {
         float length;
@@ -457,17 +458,17 @@ public:
     pointStatistics_t scanStatistics;
     std::vector<pointStatistics_t> circlesStatistics;
     //vector<pointStatistics_t> shotsStatistics;
-    // Ã¿¸öCircleÓÉÒ»×éÁ¬ĞøÏß¶Î±íÊ¾
+    // æ¯ä¸ªCircleç”±ä¸€ç»„è¿ç»­çº¿æ®µè¡¨ç¤º
     std::vector<continuousLines_t> circlesLines;
 
-    /****************************** Íø¸ñ´¦Àí ******************************/
-    // scanCellArray°üº¬ÁËËùÓĞÍø¸ñ(cell)Êı¾İ£¬²¢ÄÜÍ¨¹ıcellµÃµ½ËùÓĞµÄµã
+    /****************************** ç½‘æ ¼å¤„ç† ******************************/
+    // scanCellArrayåŒ…å«äº†æ‰€æœ‰ç½‘æ ¼(cell)æ•°æ®ï¼Œå¹¶èƒ½é€šè¿‡cellå¾—åˆ°æ‰€æœ‰çš„ç‚¹
     pieArray_t scanPieArray;
-    // scanCellFeatureArrayºÍscanCellArrayÊÇÒ»Ò»¶ÔÓ¦µÄ¹ØÏµ£¬°üº¬ËùÓĞcellµÄÌØÕ÷
+    // scanCellFeatureArrayå’ŒscanCellArrayæ˜¯ä¸€ä¸€å¯¹åº”çš„å…³ç³»ï¼ŒåŒ…å«æ‰€æœ‰cellçš„ç‰¹å¾
     pieFeatureArray_t scanPieFeatureArray;
 
 
-    /****************************** ¼¯Èº´¦Àí ******************************/
+    /****************************** é›†ç¾¤å¤„ç† ******************************/
     pieClusterSet_t scanPieClusterSet;
     pieClusterFeatureSet_t scanPieClusterFeatureSet;
 
@@ -475,14 +476,14 @@ public:
     clusterLineFeatureArray_t scanClusterLineFeatureArray;
 
 
-    /******************************** ·½¸ñ ********************************/
+    /******************************** æ–¹æ ¼ ********************************/
     gridArray_t scanGridArray;
     gridFeatureArray_t scanGridFeatureArray;
     gridClusterSet_t scanGridClusterSet;
-    // ¾ÛÀàµÄµã¼¯ºÏµÄÄ¿±ê
+    // èšç±»çš„ç‚¹é›†åˆçš„ç›®æ ‡
     gridClusterFeatureSet_t scanGridClusterFeatureSet;
 
-    // ·½¸ñ±ßÔµµã
+    // æ–¹æ ¼è¾¹ç¼˜ç‚¹
     typedef  struct
     {
         int current_state;
@@ -494,16 +495,16 @@ public:
         float rx3, ry3;
         char gridArray[100][100];
     } msgLIDAR_t;
-    // ¸ø¿ØÖÆµÄÁù¸ö±ßÔµµãºÍ·½¸ñ
+    // ç»™æ§åˆ¶çš„å…­ä¸ªè¾¹ç¼˜ç‚¹å’Œæ–¹æ ¼
     msgLIDAR_t scanMsgLIDAR;
-    //¿ØÖÆ·´À¡µÄµ±Ç°³µËÙºÍ³µÂÖ½Ç¶È
+    //æ§åˆ¶åé¦ˆçš„å½“å‰è½¦é€Ÿå’Œè½¦è½®è§’åº¦
     typedef struct
     {
         float carSpeed;
         int wheelAngel;
     } msgFromCtrl_t;
     msgFromCtrl_t scanMsgFromCtrl;
-    // 1m. 3m. 6mµÄÁù¸ö±ßÔµµã
+    // 1m. 3m. 6mçš„å…­ä¸ªè¾¹ç¼˜ç‚¹
     typedef  struct
     {
         float lx1, ly1;
@@ -514,7 +515,7 @@ public:
         float rx3, ry3;
     } SixPoints1m3m6m_t;
     SixPoints1m3m6m_t scanSixPoints1m3m6m;
-    // 5m.10m.15mµÄÁù¸ö±ßÔµµã
+    // 5m.10m.15mçš„å…­ä¸ªè¾¹ç¼˜ç‚¹
     typedef  struct
     {
         float lx1, ly1;
@@ -529,9 +530,9 @@ public:
     float scanSixPointsAtAnyDisX[3];
     float scanSixPointsAtAnyDisYL[3];
     float scanSixPointsAtAnyDisYR[3];
-    // ´æ·Å¼ÆËã³µÇ°ÈÎÒâÁù¸ö¾àÀëµÄ12¸ö±ßÔµµãX×ø±ê
+    // å­˜æ”¾è®¡ç®—è½¦å‰ä»»æ„å…­ä¸ªè·ç¦»çš„12ä¸ªè¾¹ç¼˜ç‚¹Xåæ ‡
     float scanTwelvePointsAtAnyDisX[12];
-    // ´æ·Å¼ÆËã³µÇ°ÈÎÒâÁù¸ö¾àÀëµÄ12¸ö±ßÔµµãY×ø±ê
+    // å­˜æ”¾è®¡ç®—è½¦å‰ä»»æ„å…­ä¸ªè·ç¦»çš„12ä¸ªè¾¹ç¼˜ç‚¹Yåæ ‡
     float scanTwelvePointsAtAnyDisY[12];
 
     VelodyneDataStruct();
