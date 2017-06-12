@@ -183,6 +183,7 @@ void drawAllPoints(int psize, int mode)
     glEnd();
 }
 
+
 /*********** Added by lxs ************/
 void MydrawAllPoints(int psize, int mode)
 {
