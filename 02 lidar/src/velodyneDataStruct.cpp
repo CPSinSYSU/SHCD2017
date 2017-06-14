@@ -61,7 +61,7 @@ VelodyneDataRaw::~VelodyneDataRaw()
 
 /*
  *	added by durant35
- *		filename Ö¸¶¨µÄ.raw¸ñÊ½ÎÄ¼ş×ª»»³É shots Êı¾İ
+ *		filename æŒ‡å®šçš„.rawæ ¼å¼æ–‡ä»¶è½¬æ¢æˆ shots æ•°æ®
  */
 int VelodyneDataRaw::deserialize(const char* filename)
 {
@@ -85,14 +85,14 @@ int VelodyneDataRaw::deserialize(const char* filename)
         file.close();
         return -1;
     }
-    // magic ºóÃæËÄ¸ö×Ö½ÚÊÇ size
+    // magic åé¢å››ä¸ªå­—èŠ‚æ˜¯ size
     file.read(buffer, sizeof(VelodyneDataRaw::magic));
 
     len = *p;
     shots.clear();
     /*
-     *		Êı¾İ°´Ö¡±£´æ¡¢°´Ö¡¶ÁÈ¡
-     *		Ò»Ö¡°üº¬64¸ö xpoint_t
+     *		æ•°æ®æŒ‰å¸§ä¿å­˜ã€æŒ‰å¸§è¯»å–
+     *		ä¸€å¸§åŒ…å«64ä¸ª xpoint_t
      */
     for (i = 0; i < len; ++i)
     {
@@ -108,13 +108,13 @@ int VelodyneDataRaw::deserialize(const char* filename)
 }
 
 /*
- *		saveToPCD == true£¬½« shots Êı¾İ±£´æ³É.pcd¸ñÊ½
- *		saveToPCD == false£¬½« shots Êı¾İ±£´æ³É.raw¸ñÊ½
+ *		saveToPCD == trueï¼Œå°† shots æ•°æ®ä¿å­˜æˆ.pcdæ ¼å¼
+ *		saveToPCD == falseï¼Œå°† shots æ•°æ®ä¿å­˜æˆ.rawæ ¼å¼
  */
 int VelodyneDataRaw::serialize(const char* filename, bool saveToPCD)
 {
     int len, i;
-    // ±£´æ³Éraw¸ñÊ½
+    // ä¿å­˜æˆrawæ ¼å¼
     if (saveToPCD == false)
     {
         std::ofstream file;
@@ -132,7 +132,7 @@ int VelodyneDataRaw::serialize(const char* filename, bool saveToPCD)
         file.close();
     }
 
-    //// ±£´æ³Épcd¸ñÊ½, use pcl API
+    //// ä¿å­˜æˆpcdæ ¼å¼, use pcl API
     //else{
     //	pcl::PointCloud<pcl::PointXYZ> cloud;
     //	// Fill in the cloud data

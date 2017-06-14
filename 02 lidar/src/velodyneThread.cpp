@@ -312,86 +312,15 @@ socket_out:
     WSACleanup();
 #endif // WIN32
 
-    printf("SocketThread stoped...\n");
+    printf("SocketThread stopped...\n");
     return NULL;
 }
 
-#ifdef WIN32
-VOID CALLBACK TimerProc(HWND hwnd, UINT message, UINT iTimerID, DWORD dwTime)
-{
-    pthread_spin_lock(&g_scanBuffer_lock);
-    if (g_scanBufferSize > 1)
-    {
-        // 丢弃帧
-        if (g_scanBufferSize > HALF_SCAN_BUFFER_SIZE)
-        {
-            g_scanBufferReadIdx = (g_scanBufferReadIdx + 2) % SCAN_BUFFER_SIZE;
-            g_scanBufferSize -= 2;
-            //g_scanDrop++;
-        }
-        else
-        {
-            g_scanBufferReadIdx = (g_scanBufferReadIdx + 1) % SCAN_BUFFER_SIZE;
-            g_scanBufferSize--;
-        }
-        g_scanBuffer[g_scanBufferReadIdx].isTrackerHandled = false;
-    }
-    pthread_spin_unlock(&g_scanBuffer_lock);
-}
-#else
-//#define TIMEER_TEST
-void TimerProc(int num)
-{
-#ifdef TIMEER_TEST
-    struct timeval tp;
-#ifdef WIN32
-    gettimeofday(&tp);
-#else
-    gettimeofday(&tp, NULL);
-#endif // WIN32
-    struct tm *ltime;
-    char timestr[32];
-
-    time_t local_tv_sec;
-
-    // convert the timestamp to readable format
-    local_tv_sec = tp.tv_sec;
-    ltime = localtime(&local_tv_sec);
-    strftime(timestr, sizeof(timestr), "%Y%m%d%H%M%S", ltime);
-    printf("%s [usec]%d\n", timestr, tp.tv_usec);
-#endif
-/*
-    //pthread_spin_lock(&g_scanBuffer_lock);
-    if (g_scanBufferSize > 1)
-    {
-        // 丢弃帧
-        if (g_scanBufferSize > HALF_SCAN_BUFFER_SIZE)
-        {
-            g_scanBufferReadIdx = (g_scanBufferReadIdx + 2) % SCAN_BUFFER_SIZE;
-            g_scanBufferSize -= 2;
-            //g_scanDrop++;
-        }
-        else
-        {
-            g_scanBufferReadIdx = (g_scanBufferReadIdx + 1) % SCAN_BUFFER_SIZE;
-            g_scanBufferSize--;
-        }
-        //g_scanBuffer[g_scanBufferReadIdx].isTrackerHandled = false;
-    }
-*/
-    glutPostRedisplay();
-    //myDisplay();
-    char currentTime[64];
-    getCurrentTimeStr(currentTime, sizeof(currentTime));
-    printf("glutPostRedisplay at %s\n", currentTime);
-
-    //pthread_spin_unlock(&g_scanBuffer_lock);
-}
-#endif // WIN32
-
 extern int argc_gl;
 extern char **argvs_gl;
-void* OpenGLThread(void* arg){
+void* OpenGLThread(void* arg) {
     glutInit(&argc_gl, argvs_gl);
+    printf("OpenGLThread started...\n");
     MyGLDispIni();
+    printf("OpenGLThread stopped...\n");
 }

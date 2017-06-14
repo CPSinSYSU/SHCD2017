@@ -3,22 +3,22 @@
 
 /* *************************************************************************
  *
- *	È«¾ÖÅäÖÃ
- *	ÅäÖÃÎÄ¼ş ./velodyne.ini
- *	ÅäÖÃ½á¹¹Ìå
- *		CfgVeloView: ×ÜÌåÅäÖÃÏî½á¹¹Ìå¶¨Òå
- *			CfgCircleItem: Ã¿¸öcircleµÄÅäÖÃÑ¡Ïî¶¨Òå
- *			CfgPlaneDetect: Æ½Ãæ¼ì²âÅäÖÃÑ¡Ïî¶¨Òå
- *			CfgGlobal: È«¾ÖÅäÖÃÏî¶¨Òå
+ *	å…¨å±€é…ç½®
+ *	é…ç½®æ–‡ä»¶ ./velodyne.ini
+ *	é…ç½®ç»“æ„ä½“
+ *		CfgVeloView: æ€»ä½“é…ç½®é¡¹ç»“æ„ä½“å®šä¹‰
+ *			CfgCircleItem: æ¯ä¸ªcircleçš„é…ç½®é€‰é¡¹å®šä¹‰
+ *			CfgPlaneDetect: å¹³é¢æ£€æµ‹é…ç½®é€‰é¡¹å®šä¹‰
+ *			CfgGlobal: å…¨å±€é…ç½®é¡¹å®šä¹‰
  *			CfgShotOffset:
- *			CfgInterSection: Â·¿ÚËã·¨²ÎÊı
- *			CfgIntersection: Â·¿ÚËã·¨²ÎÊı(ĞÂµÄÂ·¿ÚËã·¨)
+ *			CfgInterSection: è·¯å£ç®—æ³•å‚æ•°
+ *			CfgIntersection: è·¯å£ç®—æ³•å‚æ•°(æ–°çš„è·¯å£ç®—æ³•)
  *			CfgIgnoreCircleWhenProjection:
  *			CfgCarShapeParameter:
  *
  ***************************************************************************/
 
-// ¼¸Ïß¼¤¹âÀ×´ï
+// å‡ çº¿æ¿€å…‰é›·è¾¾
 #ifdef USE_VLP_16_
 #define CIRCLE_NUM 16
 #elif USE_HDL_64E_
@@ -27,22 +27,22 @@
 #define CIRCLE_NUM 32
 #endif
 
-// È«¾ÖÅäÖÃÏî¶¨Òå
+// å…¨å±€é…ç½®é¡¹å®šä¹‰
 typedef struct
 {
-    int GroundZ;						// µØÃæ¸ß³Ì
+    int GroundZ;						// åœ°é¢é«˜ç¨‹
 
-    int ThresholdMinHollow;				// ÖĞ¿ÕÍø¸ñÅĞ¶Ï£¬×îĞ¡Öµ
-    int ThresholdMaxHollow;				// ÖĞ¿ÕÍø¸ñÅĞ¶Ï£¬×î´óÖµ
+    int ThresholdMinHollow;				// ä¸­ç©ºç½‘æ ¼åˆ¤æ–­ï¼Œæœ€å°å€¼
+    int ThresholdMaxHollow;				// ä¸­ç©ºç½‘æ ¼åˆ¤æ–­ï¼Œæœ€å¤§å€¼
 
-    int ShotCalcFrom;					// ´ÓµÚShotCalcFrom¸öshot¿ªÊ¼¼ÆËãÌØÕ÷
-    int ShotCalcNum;					// Ò»¹²¼ÆËãShotCalcNum¸öshot
-    int ShotShowFrom;					// ´ÓµÚShotShowFrom¸öshot¿ªÊ¼ÏÔÊ¾
-    int ShotShowNum;					// Ò»¹²ÏÔÊ¾ShotShowNum¸öshot
+    int ShotCalcFrom;					// ä»ç¬¬ShotCalcFromä¸ªshotå¼€å§‹è®¡ç®—ç‰¹å¾
+    int ShotCalcNum;					// ä¸€å…±è®¡ç®—ShotCalcNumä¸ªshot
+    int ShotShowFrom;					// ä»ç¬¬ShotShowFromä¸ªshotå¼€å§‹æ˜¾ç¤º
+    int ShotShowNum;					// ä¸€å…±æ˜¾ç¤ºShotShowNumä¸ªshot
 
-    int ContinusLineMinDistInCircle;	// CircleÖĞÁ¬ĞøÏß¶Î×îĞ¡¾àÀë
+    int ContinusLineMinDistInCircle;	// Circleä¸­è¿ç»­çº¿æ®µæœ€å°è·ç¦»
 
-    float ThresholdMinRad;				// ¾àÀëãĞÖµ
+    float ThresholdMinRad;				// è·ç¦»é˜ˆå€¼
 
     int CarLength;
     int CarWidth;
@@ -52,87 +52,87 @@ typedef struct
     int MaxLaserDistacne;
     int MinLaserDistance;
 } CfgGlobal_t;
-// Æ½Ãæ¼ì²âÅäÖÃÑ¡Ïî¶¨Òå
+// å¹³é¢æ£€æµ‹é…ç½®é€‰é¡¹å®šä¹‰
 typedef struct
 {
-    // ·½ĞÎÍø¸ñ
-    int GridCellSize;					// µ¥Ôª¸ñ´óĞ¡£¬µ¥Î»ÎªÀåÃ×
-    int GridHeadRowNum;					// µ¥Ôª¸ñµÄÇ°·½µÄĞĞÊı£¨´Ó³µÍ·Ç°·½Æğ£©*/
-    int GridBackRowNum;					// ±¾³µºó·½µ¥Ôª¸ñµÄĞĞÊı(´Ó×îºó·½Æğ£¬ÑØ³µÇ°½ø·½Ïò µÚ0ĞĞ£¬µÚ1ĞĞ...)
-    int GridColumnNum;					// µ¥Ôª¸ñÊıÁ¿£¬Íø¸ñÎªÕı·½ĞÎ£¬Ô­µãÔÚÕıÖĞ¼ä£¬ÖĞµãµ½4±ßµÄÍø¸ñÊıÁ¿(//TODO: Ó¦¸ÃÊÇºáÅÅ»òÕßÊúÅÅ·½¸ñÊıÁ¿)
-    float GridThresholdGroundDetect;	// Æ½Ãæ¼ì²â ÅĞ¶ÏãĞÖµ£¬Ğ¡ÓÚ¸ÃÊıÎªÆ½Ãæ
+    // æ–¹å½¢ç½‘æ ¼
+    int GridCellSize;					// å•å…ƒæ ¼å¤§å°ï¼Œå•ä½ä¸ºå˜ç±³
+    int GridHeadRowNum;					// å•å…ƒæ ¼çš„å‰æ–¹çš„è¡Œæ•°ï¼ˆä»è½¦å¤´å‰æ–¹èµ·ï¼‰*/
+    int GridBackRowNum;					// æœ¬è½¦åæ–¹å•å…ƒæ ¼çš„è¡Œæ•°(ä»æœ€åæ–¹èµ·ï¼Œæ²¿è½¦å‰è¿›æ–¹å‘ ç¬¬0è¡Œï¼Œç¬¬1è¡Œ...)
+    int GridColumnNum;					// å•å…ƒæ ¼æ•°é‡ï¼Œç½‘æ ¼ä¸ºæ­£æ–¹å½¢ï¼ŒåŸç‚¹åœ¨æ­£ä¸­é—´ï¼Œä¸­ç‚¹åˆ°4è¾¹çš„ç½‘æ ¼æ•°é‡(//TODO: åº”è¯¥æ˜¯æ¨ªæ’æˆ–è€…ç«–æ’æ–¹æ ¼æ•°é‡)
+    float GridThresholdGroundDetect;	// å¹³é¢æ£€æµ‹ åˆ¤æ–­é˜ˆå€¼ï¼Œå°äºè¯¥æ•°ä¸ºå¹³é¢
     float GridThresholdDiffZ;
-    float GridColorFactor;				// ÔÚjet color Ä£Ê½ÏÂ ÓÃÀ´µ÷Õû¼ì²âÖµÑÕÉ«·Ö²¼0-1
-    int GridColorMode;					// ¸ÃÌõcircleµÄÏÔÊ¾Ä£Ê½
-    // 0 Îªjet colorÄ£Ê½(ÔÚ0-1Çø¼äÄÚ·Ö²¼1024ÖÖÑÕÉ«)
-    // 1 ÎªãĞÖµÄ£Ê½(¸ù¾İãĞÖµ·Ö¸î²»Í¬ÑÕÉ«)
+    float GridColorFactor;				// åœ¨jet color æ¨¡å¼ä¸‹ ç”¨æ¥è°ƒæ•´æ£€æµ‹å€¼é¢œè‰²åˆ†å¸ƒ0-1
+    int GridColorMode;					// è¯¥æ¡circleçš„æ˜¾ç¤ºæ¨¡å¼
+    // 0 ä¸ºjet coloræ¨¡å¼(åœ¨0-1åŒºé—´å†…åˆ†å¸ƒ1024ç§é¢œè‰²)
+    // 1 ä¸ºé˜ˆå€¼æ¨¡å¼(æ ¹æ®é˜ˆå€¼åˆ†å‰²ä¸åŒé¢œè‰²)
 
-    // ±ıĞÍÍø¸ñ
-    int PieRadSize;					    // Æ½Ãæ¼ì²â(°ë¾¶·½ÏòÉÏÏàÍ¬Ğı½Ç)µ¥Ôª¸ñ°ë¾¶·½ÏòµÄ´óĞ¡£¬µ¥Î»ÎªÀåÃ×*/
+    // é¥¼å‹ç½‘æ ¼
+    int PieRadSize;					    // å¹³é¢æ£€æµ‹(åŠå¾„æ–¹å‘ä¸Šç›¸åŒæ—‹è§’)å•å…ƒæ ¼åŠå¾„æ–¹å‘çš„å¤§å°ï¼Œå•ä½ä¸ºå˜ç±³*/
     int PieShotFrom;                    // shot range for valid obstacle detection
     int PieShotEnd;
-    int PieAzimuthNum;					// °ÑÔ²ÖÜ·Ö³ÉAzimuthSize·İ
-    int PieMinRad;						// Æ½Ãæ¼ì²â¼ÆËã·¶Î§ ×óÇø¼ä(°ë¾¶·¶Î§)
-    int PieMaxRad;						// Æ½Ãæ¼ì²â¼ÆËã·¶Î§ ÓÒÇø¼ä
-    float PieThresholdGroundDetect;		// Æ½Ãæ¼ì²â ÅĞ¶ÏãĞÖµ£¬Ğ¡ÓÚ¸ÃÊıÎªÆ½Ãæ
+    int PieAzimuthNum;					// æŠŠåœ†å‘¨åˆ†æˆAzimuthSizeä»½
+    int PieMinRad;						// å¹³é¢æ£€æµ‹è®¡ç®—èŒƒå›´ å·¦åŒºé—´(åŠå¾„èŒƒå›´)
+    int PieMaxRad;						// å¹³é¢æ£€æµ‹è®¡ç®—èŒƒå›´ å³åŒºé—´
+    float PieThresholdGroundDetect;		// å¹³é¢æ£€æµ‹ åˆ¤æ–­é˜ˆå€¼ï¼Œå°äºè¯¥æ•°ä¸ºå¹³é¢
     float PieThresholdDiffZ;
-    float PieColorFactor;				// ÔÚjet color Ä£Ê½ÏÂ ÓÃÀ´µ÷Õû¼ì²âÖµÑÕÉ«·Ö²¼0-1
-    int PieColorMode;					// ¸ÃÌõcircleµÄÏÔÊ¾Ä£Ê½
-    // 0 Îªjet colorÄ£Ê½(ÔÚ0-1Çø¼äÄÚ·Ö²¼1024ÖÖÑÕÉ«)
-    // 1 ÎªãĞÖµÄ£Ê½(¸ù¾İãĞÖµ·Ö¸î²»Í¬ÑÕÉ«)
+    float PieColorFactor;				// åœ¨jet color æ¨¡å¼ä¸‹ ç”¨æ¥è°ƒæ•´æ£€æµ‹å€¼é¢œè‰²åˆ†å¸ƒ0-1
+    int PieColorMode;					// è¯¥æ¡circleçš„æ˜¾ç¤ºæ¨¡å¼
+    // 0 ä¸ºjet coloræ¨¡å¼(åœ¨0-1åŒºé—´å†…åˆ†å¸ƒ1024ç§é¢œè‰²)
+    // 1 ä¸ºé˜ˆå€¼æ¨¡å¼(æ ¹æ®é˜ˆå€¼åˆ†å‰²ä¸åŒé¢œè‰²)
 
 
 } CfgPlaneDetect_t;
-// ¸ºÕÏ°­¼ì²âËã·¨²ÎÊı
+// è´Ÿéšœç¢æ£€æµ‹ç®—æ³•å‚æ•°
 typedef struct
 {
-    int NegativeObstacleCellSize;				// Íø¸ñ±ß³¤(cm)
-    int NegativeObstacleGridDim;				// Íø¸ñ´óĞ¡
-    float NegativeObstacleThresholdStartEdge;	// ÓÃÀ´ÅĞ¶Ï¡°¿Ó¡±¿¿½ü³µÌåµÄÄÇ¸ö±ßÔµ
-    float NegativeObstacleThresholdEndEdge;		// ÓÃÀ´ÅĞ¶Ï¡°¿Ó¡±Ô¶Àë³µÌåµÄÁíÒ»¸ö±ßÔµ
-    int NegativeObstacleThresholdEdgeNumber;	// ÓÃÓÚÅĞ¶Ï¸ÃÍø¸ñÊÇ·ñÎª¿ÓµÄ±ßÔµ¸öÊı
+    int NegativeObstacleCellSize;				// ç½‘æ ¼è¾¹é•¿(cm)
+    int NegativeObstacleGridDim;				// ç½‘æ ¼å¤§å°
+    float NegativeObstacleThresholdStartEdge;	// ç”¨æ¥åˆ¤æ–­â€œå‘â€é è¿‘è½¦ä½“çš„é‚£ä¸ªè¾¹ç¼˜
+    float NegativeObstacleThresholdEndEdge;		// ç”¨æ¥åˆ¤æ–­â€œå‘â€è¿œç¦»è½¦ä½“çš„å¦ä¸€ä¸ªè¾¹ç¼˜
+    int NegativeObstacleThresholdEdgeNumber;	// ç”¨äºåˆ¤æ–­è¯¥ç½‘æ ¼æ˜¯å¦ä¸ºå‘çš„è¾¹ç¼˜ä¸ªæ•°
 } CfgNegativeObstacle_t;
-// ·½ĞÍÍø¸ñÍ¶Ó°Ê±£¬ºöÂÔµÄ´¹Ö±½Ç¶ÈÆ½ÃæÅäÖÃÏî
+// æ–¹å‹ç½‘æ ¼æŠ•å½±æ—¶ï¼Œå¿½ç•¥çš„å‚ç›´è§’åº¦å¹³é¢é…ç½®é¡¹
 typedef struct
 {
     int IgnoreCircle[32];
 } CfgIgnoreCircleWhenProjection_t;
 
-// Ã¿¸öcircleµÄÅäÖÃÑ¡Ïî¶¨Òå
+// æ¯ä¸ªcircleçš„é…ç½®é€‰é¡¹å®šä¹‰
 typedef struct
 {
-    int Enable;								// ÊÇ·ñÊ¹ÓÃ¸ÃÌõCircle¶ÔÓ¦µÄ¼¤¹âÀ×´ï
-    float ThresholdMinDist;					// ¾àÀëãĞÖµ£¬Ğ¡ÓÚ¸ÃãĞÖµ ±íÊ¾·ÇÆ½Ãæ
-    float ThresholdRoadEdge;				// Delta R ãĞÖµ£¬Ğ¡ÓÚ¸ÃÖµÈÏÎªÊÇÆ½Ì¨Â·Ãæ£¬·ñÔòÎªÂ·ÑØµÈ
-    float ThresholdRoadEdgeByDeltaZ;     // Delta Z ãĞÖµ£¬Ğ¡ÓÚ¸ÃÖµÈÏÎªÊÇÆ½Ì¨Â·Ãæ£¬·ñÔòÎªÂ·ÑØµÈ
+    int Enable;								// æ˜¯å¦ä½¿ç”¨è¯¥æ¡Circleå¯¹åº”çš„æ¿€å…‰é›·è¾¾
+    float ThresholdMinDist;					// è·ç¦»é˜ˆå€¼ï¼Œå°äºè¯¥é˜ˆå€¼ è¡¨ç¤ºéå¹³é¢
+    float ThresholdRoadEdge;				// Delta R é˜ˆå€¼ï¼Œå°äºè¯¥å€¼è®¤ä¸ºæ˜¯å¹³å°è·¯é¢ï¼Œå¦åˆ™ä¸ºè·¯æ²¿ç­‰
+    float ThresholdRoadEdgeByDeltaZ;     // Delta Z é˜ˆå€¼ï¼Œå°äºè¯¥å€¼è®¤ä¸ºæ˜¯å¹³å°è·¯é¢ï¼Œå¦åˆ™ä¸ºè·¯æ²¿ç­‰
 } CfgCircleItem_t;
 
-// ×ÜÌåÅäÖÃÏî½á¹¹Ìå¶¨Òå
+// æ€»ä½“é…ç½®é¡¹ç»“æ„ä½“å®šä¹‰
 typedef struct
 {
-    CfgGlobal_t cfgGlobal;										// È«¾ÖÅäÖÃÏî
-    CfgPlaneDetect_t cfgPlaneDetect;							// Æ½Ãæ¼ì²âÏî
-    CfgCircleItem_t cfgCircleItems[CIRCLE_NUM];					// CircleÏî
+    CfgGlobal_t cfgGlobal;										// å…¨å±€é…ç½®é¡¹
+    CfgPlaneDetect_t cfgPlaneDetect;							// å¹³é¢æ£€æµ‹é¡¹
+    CfgCircleItem_t cfgCircleItems[CIRCLE_NUM];					// Circleé¡¹
     CfgIgnoreCircleWhenProjection_t cfgIgnoreCircleWhenProjection;
-    CfgNegativeObstacle_t cfgNegativeObstacle;					// ¸ºÕÏ°­ÅäÖÃÏî
+    CfgNegativeObstacle_t cfgNegativeObstacle;					// è´Ÿéšœç¢é…ç½®é¡¹
 } CfgVeloView_t;
 
 /*
- *  ´ÓÅäÖÃÎÄ¼ş¶ÁÈëÅäÖÃµ½ÅäÖÃ½á¹¹Ìå
- *  @param[out] cfg       ÒªĞ´ÈëµÄ½á¹¹Ìå
- *  @param[in]  filename  Òª¶ÁÈëµÄÎÄ¼ş
- *  @return     0:³É¹¦ ÆäËûÊ§°Ü
+ *  ä»é…ç½®æ–‡ä»¶è¯»å…¥é…ç½®åˆ°é…ç½®ç»“æ„ä½“
+ *  @param[out] cfg       è¦å†™å…¥çš„ç»“æ„ä½“
+ *  @param[in]  filename  è¦è¯»å…¥çš„æ–‡ä»¶
+ *  @return     0:æˆåŠŸ å…¶ä»–å¤±è´¥
  */
 int LoadCfgVeloView(CfgVeloView_t& cfg, const char* filechar);
 /*
- *    °ÑÅäÖÃ½á¹¹ÌåĞ´Èëµ½ÅäÖÃÎÄ¼ş
- *    @param[in]  cfg       Òª¶ÁÈ¡µÄ½á¹¹Ìå
- *    @param[out] filename  ÒªĞ´ÈëµÄÎÄ¼ş
- *    @return     0:³É¹¦ ÆäËûÊ§°Ü
+ *    æŠŠé…ç½®ç»“æ„ä½“å†™å…¥åˆ°é…ç½®æ–‡ä»¶
+ *    @param[in]  cfg       è¦è¯»å–çš„ç»“æ„ä½“
+ *    @param[out] filename  è¦å†™å…¥çš„æ–‡ä»¶
+ *    @return     0:æˆåŠŸ å…¶ä»–å¤±è´¥
  */
 int SaveCfgVeloView(CfgVeloView_t& cfg, const char* filename);
 
-extern CfgVeloView_t g_CfgVeloView;								// È«¾ÖÅäÖÃ½á¹¹ÌåµÄÉùÃ÷
+extern CfgVeloView_t g_CfgVeloView;								// å…¨å±€é…ç½®ç»“æ„ä½“çš„å£°æ˜
 
 #endif
 

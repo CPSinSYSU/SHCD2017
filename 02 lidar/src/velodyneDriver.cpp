@@ -530,7 +530,6 @@ bool VelodyneDriver::isNewScan(VelodyneDataRaw::velodyne_packet_t& packet)
  */
 int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, VelodyneDataRaw& velodyne_data)
 {
-    printf("recv packet\n");
     // laser distance filter paras
     int DISTANCE_MAXIMUM = g_CfgVeloView.cfgGlobal.MaxLaserDistacne;
     int DISTANCE_MINIMUM = g_CfgVeloView.cfgGlobal.MinLaserDistance;
@@ -557,43 +556,112 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
 
     VelodyneDataRaw::shot_t shotobj;
 
+    // 64线激光雷达相邻两个block为一次shot 通过block_header_laser_id区分前后两个block
+#ifdef USE_HDL_64E_
+    int block_header_laser_id;
+#endif
+
+    /*
+     * 16线激光雷达每个 block 中有 32 个点，其中前 16 个点对应于该 block 上标志的 Azimuth N，即明确给出了这 16 个点对应的垂
+     *  直面的旋转角，后 16 个点的旋转角未给出准确值，在下一个 block 中给出了 Azimuth N+2
+     *  假设雷达的转速均匀，则根据 Azimuth N 和 Azimuth N+2 可以计算出第一个 block 中后 16 个点对应的旋转角 Azimuth N+1
+     */
+#ifdef USE_VLP_16_
+    int Azimuth[24];
+    for (unsigned block = 0; block < VELODYNE_NUM_BLOCKS_IN_ONE_PKT; block++)
+    {
+        Azimuth[block * 2] = packet.blocks[block].rotational_pos;
+    }
+    for (unsigned block = 0; block < VELODYNE_NUM_BLOCKS_IN_ONE_PKT-1; block++)
+    {
+        int current = block * 2;
+        int middle = block * 2 + 1;
+        int next = (block + 1) * 2;
+        //  First, adjust for a rollover from
+        if (Azimuth[next] < Azimuth[current])
+            Azimuth[next] += 36000;
+        // Perform the interpolation
+        Azimuth[middle] = Azimuth[current] + ((Azimuth[next] - Azimuth[current]) / 2);
+        // Correct for any rollover over from 35999 to 0
+        if (Azimuth[middle] > 36000)
+            Azimuth[middle] -= 36000;
+    }
+    // for the last shot, use the previous 2 shot(in block #11 & #12) roational_pos to calculate
+    if (Azimuth[22] < Azimuth[20])
+        Azimuth[22] = Azimuth[22] + 360;
+    // Perform the interpolation
+    Azimuth[23] = Azimuth[22] + ((Azimuth[22] - Azimuth[20]) / 2);
+    // Correct for any rollover over
+    if (Azimuth[23] > 36000)
+        Azimuth[23] -= 36000;
+#endif
 
     // 每个packet包含12个blocks
     for (unsigned block = 0; block < VELODYNE_NUM_BLOCKS_IN_ONE_PKT; block++)
     {
         /*
-         *	Each data block begins with a two-byte start identifier,
-         *		then a two-byte azimuth value (rotational angle),
-         *		followed by 32x3-byte data records.
+         *  Each data block begins with a two-byte start identifier,
+         *      then a two-byte azimuth value (rotational angle),
+         *      followed by 32x3-byte data records.
          */
         // Each frame start with 0xEEFF || 0xDDFF(64线的第二个block)
-
+#ifdef USE_HDL_64E_
+        if (block % 2 == 0)
+        {
+            if (packet.blocks[block].start_identifier != UPPER_BANK)
+            {
+                return -1;
+            }
+            block_header_laser_id = 0;
+        }
+        else
+        {
+            if (packet.blocks[block].start_identifier != LOWER_BANK)
+            {
+                return -1;
+            }
+            block_header_laser_id = 32;
+        }
+#else
         if (packet.blocks[block].start_identifier != UPPER_BANK)
         {
             return -1;
         }
+#endif
         /*
          * integer between 0 and 35999. Divide this number by 100 to get degrees from 0 to 360
          */
         rotational_pos = packet.blocks[block].rotational_pos;
 
+        /* do the azimuth filters*/ 
+
         for (unsigned laser = 0; laser < VELODYNE_NUM_BEAMS_IN_ONE_BLOCK; laser++)
         {
-
+#ifdef USE_VLP_16_
+            // 16线激光雷达 一个block包含两个shot
+            firingNO = laser % VELODYNE_NUM_BEAMS_IN_ONE_SHOT;
+#elif USE_HDL_64E_
+            // 64线激光雷达 相邻两个block为一个shot
+            firingNO = laser + block_header_laser_id;
+#else
             // 32线激光雷达 一个block就是一个shot
             firingNO = laser;
+#endif
 
             heightNO = velodyne_firingOrder_to_heightOrder(firingNO);
+
+            /* do the vertical filters */
+
         #if 0
             printf("DISTANCE_MAXIMUM=%d, DISTANCE_MINIMUM=%d\n",
                    DISTANCE_MAXIMUM, DISTANCE_MINIMUM);
         #endif
             /*
-             *	1200 * 0.002 = 2.4m(DISTANCE_MINIMUM可能是车半径估值)
-             *	250  * 0.002 = 0.5m
-             *	60000 * 0.002 = 120m
+             *  1200 * 0.002 = 2.4m(DISTANCE_MINIMUM可能是车半径估值)
+             *  250  * 0.002 = 0.5m
+             *  60000 * 0.002 = 120m
              */
-            //#define DISTANCE_MINIMUM	250
+            //#define DISTANCE_MINIMUM  250
             if (packet.blocks[block].lasers[laser].distance && packet.blocks[block].lasers[laser].distance<DISTANCE_MAXIMUM
                     && packet.blocks[block].lasers[laser].distance && packet.blocks[block].lasers[laser].distance>DISTANCE_MINIMUM)
             {
@@ -601,42 +669,55 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
                 distance = absf((packet.blocks[block].lasers[laser].distance) * DISTANCE_RESOLUTION);
                 corredistance = distance + distCorrection[firingNO];
 
+//#define GET_GROUNGZ
+#ifdef GET_GROUNGZ
+                if (heightNO == 4)
+                {
+                    printf("#%d: %d\n", velodyne_data.shots.size(), packet.blocks[block].lasers[laser].distance);
+                }
+#endif
                 /*
-                 *	one byte of intensity information (0 – 255, with 255 being the most intense return).
-                 *	A zero return indicates no return up to 65 meters
+                 *  one byte of intensity information (0 – 255, with 255 being the most intense return).
+                 *  A zero return indicates no return up to 65 meters
                  */
-
                 intensity = packet.blocks[block].lasers[laser].intensity;
 
-                /* START TODO: you need to fix the following code
-                 *
-                 */
-                sin_theta = 0;				// 原始方位角
-                cos_theta = 0;
-                sin_ctheta = 0;
-                cos_ctheta = 0;
-                sin_omiga = 0;
-                cos_omiga = 0;
+                sin_theta = sinAzimuth[rotational_pos];             // 原始方位角
+                cos_theta = cosAzimuth[rotational_pos];
+                sin_ctheta = cor_sinAzimuth[firingNO][rotational_pos];
+                cos_ctheta = cor_cosAzimuth[firingNO][rotational_pos];
+                sin_omiga = sin_vertCorrection[firingNO];
+                cos_omiga = cos_vertCorrection[firingNO];
 
                 // 极坐标映射到直角坐标
-                shotobj.pt[heightNO].x = 0;
-                shotobj.pt[heightNO].y = 0;
-                shotobj.pt[heightNO].z = 0;
-                shotobj.pt[heightNO].x -= 0;
-                shotobj.pt[heightNO].y += 0;
-
+#ifndef USE_NEW_SOLVER
+#ifdef USE_CORRECT_AZIMUTH
+                shotobj.pt[heightNO].x = corredistance * cos_omiga * cos_ctheta;
+                shotobj.pt[heightNO].y = corredistance * cos_omiga * sin_ctheta;
+#else
+                shotobj.pt[heightNO].x = corredistance * cos_omiga * cos_theta;
+                shotobj.pt[heightNO].y = corredistance * cos_omiga * sin_theta;
+#endif // end of USE_CORRECT_AZIMUTH
+                //shotobj.pt[heightNO].z = corredistance * sin_omiga + vert_offsetCorrection[firingNO] * cos_omiga;
+                shotobj.pt[heightNO].z = corredistance * sin_omiga + vert_offsetCorrection[firingNO];
+                shotobj.pt[heightNO].x -= horiz_offsetCorrection[firingNO] * cos_ctheta;
+                shotobj.pt[heightNO].y += horiz_offsetCorrection[firingNO] * sin_ctheta;
+#else
+                /*
+                 * For algorithm, https://github.com/ros-drivers/velodyne/blob/master/velodyne_pointcloud/src/lib/rawdata.cc
+                 */
+                shotobj.pt[heightNO].x = corredistance * cos_omiga * cos_ctheta;
+                shotobj.pt[heightNO].y = corredistance * cos_omiga * sin_ctheta;
+                shotobj.pt[heightNO].z = corredistance * sin_omiga;
+#endif // end of USE_NEW_SOLVER
 
                 // m to cm
-                shotobj.pt[heightNO].x *= 0;
-                shotobj.pt[heightNO].y *= 0;
-                shotobj.pt[heightNO].z *= 0;
+                shotobj.pt[heightNO].x *= 100;
+                shotobj.pt[heightNO].y *= 100;
+                shotobj.pt[heightNO].z *= 100;
 
-                shotobj.pt[heightNO].i = 0;
+                shotobj.pt[heightNO].i = intensity;
 
-                /* END TODO: you need to fix the above code
-                 *
-                 */
-                 
                 shotobj.pt[heightNO].point_type = POINT_TYPE_INITIAL;
 
                 // set circle id
@@ -658,22 +739,35 @@ int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, Velod
             }
             /*
              * 16线激光雷达一个packet有24条laser，相邻2个shot归为一个block
-             *	scanobj.shots[i] 16线包含16个点
+             *  scanobj.shots[i] 16线包含16个点
              * for the 2rd shot in the same block, use the previous calculated Azimuth
              */
-
+#ifdef USE_VLP_16_
+            if (laser == (VELODYNE_NUM_BEAMS_IN_ONE_SHOT - 1))
+            {
+                velodyne_data.shots.push_back(shotobj);
+                rotational_pos = Azimuth[block * 2 + 1];
+            }
+#endif
+        }
         /*
          * scanobj.shots[i] 包含一个block的32个激光点数据(64线则包含相邻两个block的64个点)
          * 16线激光雷达一个block的第二个shot
          */
+#ifdef USE_HDL_64E_
+        if (block_header_laser_id == 32)
+        {
+            velodyne_data.shots.push_back(shotobj);
         }
+#else
         velodyne_data.shots.push_back(shotobj);
+#endif
     }
     return 0;
 }
 /*
- *	用于调试的显示函数
- *		每个 packet 12次fire，每次fire 32个laser(每两次fire组成一组64线激光数据)
+ *  用于调试的显示函数
+ *      每个 packet 12次fire，每次fire 32个laser(每两次fire组成一组64线激光数据)
  */
 void VelodyneDriver::printPacket(VelodyneDataRaw::velodyne_packet_t &packet, int seq)
 {

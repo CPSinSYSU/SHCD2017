@@ -4,6 +4,8 @@
  *
  ***************************************************************************/
 #include "velodyneDraw.h"
+// #include <iostream>
+// using namespace std;
 
 #ifdef WIN32
 #include <gl/glut.h>
@@ -20,12 +22,18 @@
 #include <string.h>             // for memset
 
 #include "velodyneDataStruct.h"
-
 #include <unistd.h>             // for usleep()
 #include <math.h>               // for sin ...
 
 uint8_t show_state = SHOW_ALL_POINTS_BELOW;
-
+double max_y = 0;
+double max_tan = 0;
+static double absf(double a)
+{
+    if (a < 0)
+        return -a;
+    return a;
+}
 void drawCar(float angle)
 {
     float min_x = -1.0 * (g_CfgVeloView.cfgGlobal.CarWidth / 2);
@@ -100,8 +108,28 @@ void drawAllPoints(int psize, int mode)
             {
                 if ((*pscanobj).shots[shot].pt[circle].point_type & POINT_TYPE_INVALID)
                     continue;
+		double temp_x,temp_y,temp_z;
+		temp_x = (*pscanobj).shots[shot].pt[circle].x;
+		temp_y = (*pscanobj).shots[shot].pt[circle].y;
+		temp_z = (*pscanobj).shots[shot].pt[circle].z;
+		if(temp_y > 0 && absf(temp_x) < temp_y/2 && temp_z > -40 && temp_z < 200)
+		{
+		    drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 0.1, psize);
+		    if(max_y < temp_y){
+			max_y = temp_y;
+		    }
+		    printf("X:%f,Y:%f,Z:%f,max_Y:%f\n",temp_x,temp_y,temp_z,max_y);
+		}
+		else if(temp_y > 0 && absf(temp_x) < temp_y/2 && temp_z < -40)
+		{
+		    drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 1.0, psize);
+		    if(absf(temp_z)/temp_y>max_tan){
+			max_tan = temp_y/absf(temp_z);
+		    }
+		    printf("X:%f,Y:%f,Z:%f,max_tan:%f\n",temp_x,temp_y,temp_z,max_tan);
+		}
                 // 绿色
-                if ((*pscanobj).shots[shot].pt[circle].x > 0 && (*pscanobj).shots[shot].pt[circle].y > 0)
+                /*if ((*pscanobj).shots[shot].pt[circle].x > 0 && (*pscanobj).shots[shot].pt[circle].y > 0)
                 {
                     drawPointRGB((*pscanobj).shots[shot].pt[circle], 0.1, 1.0, 0.1, psize);
                 }
@@ -122,17 +150,17 @@ void drawAllPoints(int psize, int mode)
                 else
                 {
                     drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 0.1, psize);
-                }
+                }*/
                 // 画地面
                 //if ((*pscanobj).shots[shot].pt[circle].z == g_CfgVeloView.cfgGlobal.GroundZ){
                 //	drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 1.0, 2);
                 //}
                 //printf("(%.2f, %.2f, %.2f)\n", (*pscanobj).shots[i].pt[j].x, (*pscanobj).shots[i].pt[j].y, (*pscanobj).shots[i].pt[j].z);
                 // 画天花板
-                if ((*pscanobj).shots[shot].pt[circle].z > 100)
+                /*if ((*pscanobj).shots[shot].pt[circle].z > 100)
                 {
                     drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 1.0, 2);
-                }
+                }*/
 //#define GET_GROUND_Z
 #ifdef GET_GROUND_Z
                 if (circle == 0)
@@ -146,6 +174,8 @@ void drawAllPoints(int psize, int mode)
             }
         }
     }
+    /*char s[] = "this is a test";
+    drawTextRGB(0.0, 1000.0, 0.0, 1.0, 1.0, 1.0, s);*/
     //pthread_spin_unlock(&g_scanBuffer_lock);
     delete pscanobj;
 
@@ -263,21 +293,23 @@ void drawLineGLRGB(float x1, float y1, float z1, float x2, float y2, float z2,
  */
 void drawTextRGB(float x, float y, float z, float r, float g, float b, char* outputstring)
 {
-    glPushMatrix();
+    glRasterPos3f(x, y, z);
     glColor3f(r, g, b);
+
 #ifdef WIN32
+    glPushMatrix();
     // Windows系统中，可以使用wglUseFontBitmaps函数来批量的产生显示字符用的显示列表
     wglUseFontBitmaps(wglGetCurrentDC(), 0, 255, 100);
-#else
-    //TODO: not-achieved function
-    //glutUseFontBitmaps( ,0, 255, 100)
-#endif
-
     glListBase(100);
-    glRasterPos3f(x, y, z);
     glCallLists(strlen(outputstring), GL_UNSIGNED_BYTE, outputstring);
 
     glPopMatrix();
+#else
+    int textIdx = 0;
+    while(outputstring[textIdx] != '\0') {
+    	textIdx++;
+    }
+#endif
 }
 
 void drawCircle(float center_x, float center_y, float radius, float r, float g, float b, float psize)
@@ -328,7 +360,7 @@ void  MyGLDispIni()
     x_rotate = 0.0;
     y_rotate = 0.0;
     z_rotate = 0.0;
-    m_zoom = 1;
+    m_zoom = 1.97566;
 
     x_lbefore = 0, y_lbefore = 0;
     x_rbefore = 0, y_rbefore = 0;
@@ -339,7 +371,7 @@ void  MyGLDispIni()
     glutInitDisplayMode(type);
 
     glutInitWindowSize(800, 600);
-    glutCreateWindow("VelodyneHDL-Viewer");
+    glutCreateWindow("VelodyneHDL-Viewer1");
 
     // 各种响应函数影响 Display Function 中的参数
     glutReshapeFunc(Reshape);
@@ -385,6 +417,12 @@ void myDisplay(void)
     //drawCar(0.);
     // for 16-line -135
     drawCar(0.0);
+    // draw the coordinate
+    drawLineGLRGB(0., 0., 0., 500., 0., 0., 1., 0., 0., 3.0);
+    drawLineGLRGB(0., 0., 0., 0., 800., 0., 0., 1., 0., 3.0);
+    drawLineGLRGB(0., 0., 0., 0., 0., 350., 0., 0., 1., 3.0);
+    char str[] = "sssssssssssssssssssssssssssssssssssssssssssss";
+    drawTextRGB(0., 10000., 0., 1., 1., 1., str);
 
     switch (show_state)
     {
@@ -549,9 +587,11 @@ void SpecialKey(int key, int x, int y)
         return;
     }
 
-    pthread_spin_lock(&g_glut_lock);
+    // cout << x_rotate << " " << y_rotate << " " << z_rotate << endl;
+    // cout << x_move << " " << y_move << " " << z_move << endl;
+    // cout << m_zoom << endl;
+
     glutPostRedisplay();
-    pthread_spin_unlock(&g_glut_lock);
 }
 
 void Reshape(int w, int h)

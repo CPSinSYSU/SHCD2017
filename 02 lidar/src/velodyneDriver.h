@@ -23,7 +23,7 @@ public:
     // Print the packet to the screen
     void printPacket(VelodyneDataRaw::velodyne_packet_t& packet_reference, int seq = 0);
 private:
-    // ��ʼΪ-1
+    // 初始为-1
     int lastRotation;
 };
 
