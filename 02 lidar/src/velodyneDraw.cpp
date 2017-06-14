@@ -112,19 +112,19 @@ void drawAllPoints(int psize, int mode)
 		temp_x = (*pscanobj).shots[shot].pt[circle].x;
 		temp_y = (*pscanobj).shots[shot].pt[circle].y;
 		temp_z = (*pscanobj).shots[shot].pt[circle].z;
-		if(temp_y > 0 && absf(temp_x) < temp_y/2 && temp_z > -40 && temp_z < 200)
+		/*if(temp_y > 0 && absf(temp_x) < temp_y/2 && temp_z > -40 && temp_z < 200)
 		{
 		    drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 0.1, psize);
 		    if(max_y < temp_y){
 			max_y = temp_y;
 		    }
 		    printf("X:%f,Y:%f,Z:%f,max_Y:%f\n",temp_x,temp_y,temp_z,max_y);
-		}
-		else if(temp_y > 0 && absf(temp_x) < temp_y/2 && temp_z < -40)
+		}*/
+		if(temp_y > 0 && absf(temp_x) < temp_y/2 && temp_z < -40)
 		{
 		    drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 1.0, psize);
 		    if(absf(temp_z)/temp_y>max_tan){
-			max_tan = temp_y/absf(temp_z);
+			max_tan = absf(temp_z)/temp_y;
 		    }
 		    printf("X:%f,Y:%f,Z:%f,max_tan:%f\n",temp_x,temp_y,temp_z,max_tan);
 		}
