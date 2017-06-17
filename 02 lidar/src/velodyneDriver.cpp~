@@ -530,7 +530,7 @@ bool VelodyneDriver::isNewScan(VelodyneDataRaw::velodyne_packet_t& packet)
  */
 int VelodyneDriver::recvPacket(VelodyneDataRaw::velodyne_packet_t& packet, VelodyneDataRaw& velodyne_data)
 {
-//    printf("recv packet\n"); 
+    printf("recv packet\n");
     // laser distance filter paras
     int DISTANCE_MAXIMUM = g_CfgVeloView.cfgGlobal.MaxLaserDistacne;
     int DISTANCE_MINIMUM = g_CfgVeloView.cfgGlobal.MinLaserDistance;
@@ -705,9 +705,3 @@ void VelodyneDriver::printPacket(VelodyneDataRaw::velodyne_packet_t &packet, int
     //printf("\n\n\n\n");
 }
 
-
-
-<<<<<<< prj1lidar-G2
-
-=======
->>>>>>> prj1lidar-G2

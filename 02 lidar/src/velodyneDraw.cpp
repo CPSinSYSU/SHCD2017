@@ -24,7 +24,8 @@
 #include <unistd.h>             // for usleep()
 #include <math.h>               // for sin ...
 
-uint8_t show_state = SHOW_ALL_POINTS_BELOW;
+/* 默认只显示位于雷达水平线以上的点, F11/F12切换 (lxs) */
+uint8_t show_state = SHOW_ALL_POINTS_ABOVE;//SHOW_ALL_POINTS_BELOW;
 
 void drawCar(float angle)
 {
@@ -55,6 +56,8 @@ void drawCar(float angle)
     glRotatef(-angle, 0.0, 0.0, 1.0);
 }
 
+int frame_num; //lxs
+
 void drawAllPoints(int psize, int mode)
 {
     glPointSize(psize);
@@ -78,20 +81,24 @@ void drawAllPoints(int psize, int mode)
         break;
     }
 
-    //pthread_spin_lock(&g_scanBuffer_lock);
+    pthread_spin_lock(&g_scanBuffer_lock); //lxs
+
+    ++ frame_num;
     VelodyneDataStruct* pscanobj = getScanRawForDraw();
     if (pscanobj)
     {
-        if (mode == 1)
-        {
-            printf("draw all points below...\n");
-        }
-        else if (mode == 2)
-        {
-            printf("draw all points above...\n");
-        }
+        //lxs
+        // if (mode == 1)
+        // {
+        //     printf("draw all points below...\n");
+        // }
+        // else if (mode == 2)
+        // {
+        //     printf("draw all points above...\n");
+        // }
         //printf("draw points\n");
         // 每个Circle "configStruct.h"
+
         for (unsigned circle = circle_start; circle <circle_end; circle++)
         {
             //  整个一周
@@ -103,7 +110,29 @@ void drawAllPoints(int psize, int mode)
                 // 绿色
                 if ((*pscanobj).shots[shot].pt[circle].x > 0 && (*pscanobj).shots[shot].pt[circle].y > 0)
                 {
-                    drawPointRGB((*pscanobj).shots[shot].pt[circle], 0.1, 1.0, 0.1, psize);
+                    /*Added by lxs*/
+                    if((*pscanobj).shots[shot].pt[circle].tan_theta > 1
+                        && (*pscanobj).shots[shot].pt[circle].rad > 5000 //50m
+                    ){
+                        drawPointRGB((*pscanobj).shots[shot].pt[circle], 0.1, 1.0, 0.1, 20*psize);
+
+                        printf(
+                            "(%04d, %04.1f, %02.1f)\n", 
+                            frame_num,
+                            (*pscanobj).shots[shot].pt[circle].rad/100.0,
+                            (*pscanobj).shots[shot].pt[circle].tan_theta
+                        );
+                        fprintf(
+                            g_fout,
+                            "(%04d, %04.1f, %02.1f)\n", 
+                            frame_num,
+                            (*pscanobj).shots[shot].pt[circle].rad/100.0,
+                            (*pscanobj).shots[shot].pt[circle].tan_theta
+                        );
+                    }
+                    else{
+                        drawPointRGB((*pscanobj).shots[shot].pt[circle], 0.1, 1.0, 0.1, psize);
+                    }
                 }
                 // 红色
                 else if ((*pscanobj).shots[shot].pt[circle].x < 0 && (*pscanobj).shots[shot].pt[circle].y > 0)
@@ -128,11 +157,11 @@ void drawAllPoints(int psize, int mode)
                 //	drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 1.0, 2);
                 //}
                 //printf("(%.2f, %.2f, %.2f)\n", (*pscanobj).shots[i].pt[j].x, (*pscanobj).shots[i].pt[j].y, (*pscanobj).shots[i].pt[j].z);
-                // 画天花板
-                if ((*pscanobj).shots[shot].pt[circle].z > 100)
-                {
-                    drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 1.0, 2);
-                }
+                // 画天花板 
+                // if ((*pscanobj).shots[shot].pt[circle].z > 100) //(lxs)
+                // {
+                //     drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 1.0, 2);
+                // }
 //#define GET_GROUND_Z
 #ifdef GET_GROUND_Z
                 if (circle == 0)
@@ -146,11 +175,63 @@ void drawAllPoints(int psize, int mode)
             }
         }
     }
+    pthread_spin_unlock(&g_scanBuffer_lock); //lxs
+
+
+    delete pscanobj;
+
+    glEnd();
+}
+
+
+/*********** Added by lxs ************/
+void MydrawAllPoints(int psize, int mode)
+{
+    glPointSize(psize);
+    glBegin(GL_POINTS);
+
+    int size;
+    int circle_start, circle_end;
+
+    circle_start = UPPER_VERT_FROM;
+    circle_end = VELODYNE_NUM_BEAMS_IN_ONE_SHOT;
+
+    //pthread_spin_lock(&g_scanBuffer_lock);
+    VelodyneDataStruct* pscanobj = getScanRawForDraw();
+    if (pscanobj)
+    {
+        printf("draw all points above...\n");
+
+        // 每个Circle "configStruct.h"
+        for (unsigned circle = circle_start; circle <circle_end; circle++)
+        {
+            //  整个一周
+            size = pscanobj->shots.size();
+            for (unsigned shot = 0; shot<size; shot++)
+            {
+                if ((*pscanobj).shots[shot].pt[circle].point_type & POINT_TYPE_INVALID)
+                    continue;
+                // 绿色
+                if (
+                    (*pscanobj).shots[shot].pt[circle].x > 0 && (*pscanobj).shots[shot].pt[circle].y > 0 //第一象限
+                    && (*pscanobj).shots[shot].pt[circle].rad > 100000
+                ){
+                    drawPointRGB((*pscanobj).shots[shot].pt[circle], 0.1, 1.0, 0.1, psize);
+                }
+                else
+                {
+                    drawPointRGB((*pscanobj).shots[shot].pt[circle], 1.0, 1.0, 0.1, psize);
+                }
+            }
+        }
+    }
+
     //pthread_spin_unlock(&g_scanBuffer_lock);
     delete pscanobj;
 
     glEnd();
 }
+/************************************/
 
 void drawPointsHeightMap(int psize)
 {
@@ -334,6 +415,8 @@ void  MyGLDispIni()
     x_rbefore = 0, y_rbefore = 0;
     z_before1 = 0, z_before2 = 0;
 
+    frame_num = 0; //lxs
+
     GLenum type;
     type = GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE;
     glutInitDisplayMode(type);
@@ -384,7 +467,15 @@ void myDisplay(void)
     // draw the car model
     //drawCar(0.);
     // for 16-line -135
-    drawCar(0.0);
+//    drawCar(0.0); //(lxs)
+// 坐标轴 lxs
+    int point_size = 1;
+    drawLineGLRGB(-1000.0,0.0,0.0, 20000.0,0.0,0.0, 1.0,1.0,0.1, point_size);
+    drawLineGLRGB(0.0,-1000.0,0.0, 0.0,20000.0,0.0, 1.0,1.0,0.1, point_size);
+
+    drawLineGLRGB(0.0,0.0,0.0,     20000.0,20000.0,0.0, 1.0,1.0,0.1, point_size);
+// 圆圈
+//    drawCircle(0.0, 0.0, 2500.0, 1.0, 1.0, 0.1, (float)point_size); //没效果 ？？
 
     switch (show_state)
     {
