@@ -707,4 +707,7 @@ void VelodyneDriver::printPacket(VelodyneDataRaw::velodyne_packet_t &packet, int
 
 
 
+<<<<<<< prj1lidar-G2
 
+=======
+>>>>>>> prj1lidar-G2
